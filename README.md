@@ -18,7 +18,7 @@ Hirameku is a [Jamstack](https://jamstack.org/) application that supports any ca
 - Visual Studio 2022
 - Visual Studio Code
 
-> *Since [Astro requires 'unsafe-inline'](https://docs.astro.build/en/guides/troubleshooting/#refused-to-execute-inline-script) (thus defeating much of the benefit of CSP), it's use will be retired. The client will be ported to a React/NextJS statically generated solution.
+> *Since [Astro requires 'unsafe-inline'](https://docs.astro.build/en/guides/troubleshooting/#refused-to-execute-inline-script) (thus defeating much of the benefit of CSP), its use will be retired. The client will be ported to a React/NextJS statically generated solution.
 
 AWS, Azure, and Google Cloud are all planned to be supported as cloud hosts, using the following services:
 
