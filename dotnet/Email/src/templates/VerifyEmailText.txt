@@ -1,0 +1,3 @@
+A Hirameku account was recently created for your email address. If this was you, please use this link to verify your account: {0}.{1}
+
+If it was not you, please use this link to report the misuse of your email: {2}. The corresponding Hirameku account will be suspended, and your email address will be barred from further use on the site.

@@ -1,0 +1,10 @@
+/* TEAM */
+Maintainer: Jon Nicholson
+Site: https://github.com/nicholsonjon/hirameku
+Location: California
+
+/* SITE */
+Last update: 2023/05/17
+Standards: HTML 5, CSS 3, ECMAScript 8 (2017)
+Components: TypeScript, Bootstrap, Svelte
+Software: Visual Studio Code, Astro

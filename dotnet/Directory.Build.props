@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <AnalysisLevel>latest-all</AnalysisLevel>
+    <AssemblyName>Hirameku.$(MSBuildProjectName)</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <Nullable>enable</Nullable>
+    <PathMap>$([System.IO.Path]::GetFullPath("$(MSBuildThisFileDirectory)"))=./</PathMap>
+    <RootNamespace>Hirameku.$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+    <TargetFramework>net6.0</TargetFramework>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,47 @@
+﻿// Hirameku is a cloud-native, vendor-agnostic, serverless application for
+// studying flashcards with support for localization and accessibility.
+// Copyright (C) 2023 Jon Nicholson
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+namespace Hirameku.User;
+
+using Hirameku.Common;
+using Hirameku.Common.Service;
+using Microsoft.IdentityModel.Tokens;
+
+public interface IUserProvider
+{
+    public Task<TokenResponseModel> ChangePassword(
+        Authenticated<ChangePasswordModel> authenticatedModel,
+        CancellationToken cancellationToken = default);
+
+    public Task DeleteUser(Authenticated<Unit> authenticatedModel, CancellationToken cancellationToken = default);
+
+    public Task<User?> GetUser(
+        Authenticated<Unit> authenticatedModel,
+        CancellationToken cancellationToken = default);
+
+    public Task UpdateEmailAddress(
+        Authenticated<UpdateEmailAddressModel> authenticatedModel,
+        CancellationToken cancellationToken = default);
+
+    public Task<SecurityToken> UpdateName(
+        Authenticated<UpdateNameModel> authenticatedModel,
+        CancellationToken cancellationToken = default);
+
+    public Task<SecurityToken> UpdateUserName(
+        Authenticated<UpdateUserNameModel> authenticatedModel,
+        CancellationToken cancellationToken = default);
+}

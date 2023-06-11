@@ -1,0 +1,27 @@
+{
+    "emailAddress": {
+        "helpText": "メールアドレスは、「username@hostname.tld」の形式である必要があります。 国際化されたメールアドレスはサポートされていません。",
+        "label": "メールアドレス",
+        "maxLength": "{{val, number}}文字を超えてはなりません。",
+        "minLength": "少なくとも{{val, number}}文字である必要があります。",
+        "pattern": "メールアドレスは、「username@hostname.tld」の形式である必要があります。 国際化されたメールアドレスはサポートされていません。",
+        "required": "必要です。",
+        "tooltip": "メールアドレスは必要であり、連絡目的のみに使用されます。 あなたのデータが共有されたり販売されたりすることはありません。"
+    },
+    "feedback": {
+        "helpText": "必要ですが、空白のみで構成することはできません。",
+        "label": "フィードバック",
+        "maxLength": "{{val, number}}文字を超えてはなりません。",
+        "minLength": "少なくとも{{val, number}}文字である必要があります。",
+        "pattern": "空白のみで構成することはできません。また、非表示文字を含めることはできません。",
+        "required": "必要です。"
+    },
+    "name": {
+        "helpText": "必要です。",
+        "label": "名前",
+        "maxLength": "{{val, number}}文字を超えてはなりません。",
+        "pattern": "テキストと空白のみで構成されている必要があります。",
+        "required": "必要です。"
+    },
+    "submitButtonName": "送る"
+}

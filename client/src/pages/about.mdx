@@ -1,0 +1,70 @@
+---
+# Hirameku is a cloud-native, vendor-agnostic, serverless application for
+# studying flashcards with support for localization and accessibility.
+# Copyright (C) 2023 Jon Nicholson
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+lang: en
+layout: ../layouts/BaseLayout.astro
+title: About Hirameku
+---
+
+# About Hirameku
+
+Hirameku is a cloud-native, vendor-agnostic, serverless application for studying flashcards with support for localization and accessibility. It is intended primarily as a technology demonstrator rather than a fully featured application.
+
+<section>
+
+## Technologies
+
+The technologies used to build the application include:
+
+- [SCSS](https://sass-lang.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Bootstrap](https://getbootstrap.com/)
+- [Astro](https://astro.build)
+- [React](https://react.dev)
+- [Node.js](https://nodejs.org)
+- [.NET](https://dotnet.microsoft.com/)
+- [Visual Studio](https://visualstudio.microsoft.com/)
+- [Visual Studio Code](https://code.visualstudio.com/)
+
+</section>
+<section>
+
+## Hosting
+
+As a serverless application, Hirameku is designed for hosting in a major public cloud. AWS is supported initially, with Azure and　Google Cloud slated for subsequent releases. While the application is designed to take advantage of the cloud providers' various PaaS offerings, portability limits these options to services with some degree of parity. These include the following:
+
+- [AWS S3](https://aws.amazon.com/s3/), [Azure Blob Storage](https://azure.microsoft.com/products/storage/blobs/), [Google Cloud Storage](https://cloud.google.com/storage/)
+- [AWS CloudFront](https://aws.amazon.com/cloudfront/), [Azure CDN](https://azure.microsoft.com/products/cdn/), [Google Cloud CDN](https://cloud.google.com/cdn/)
+- [AWS Lambda](https://aws.amazon.com/lambda/), [Azure Functions](https://azure.microsoft.com/products/functions/), [Google Cloud Functions](https://cloud.google.com/functions/)
+- [AWS API Gateway](https://aws.amazon.com/api-gateway/), [Azure API Management](https://azure.microsoft.com/products/api-management/), [Google Cloud API Gateway](https://cloud.google.com/api-gateway)
+- [AWS SNS](https://aws.amazon.com/sns/), [Azure Service Bus](https://azure.microsoft.com/products/service-bus/), [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/)
+- [AWS SES](https://aws.amazon.com/ses/), [Azure Communication Services](https://azure.microsoft.com/products/communication-services/), [SendGrid on Google Cloud](https://console.cloud.google.com/marketplace/product/sendgrid-app/sendgrid-email)
+- [AWS ElastiCache](https://aws.amazon.com/elasticache/), [Azure Cache for Redis](https://azure.microsoft.com/products/cache/), [Memorystore for Redis](https://cloud.google.com/memorystore/)
+- [AWS DocumentDB](https://aws.amazon.com/documentdb/), [Azure Cosmos DB](https://azure.microsoft.com/products/cosmos-db/), [Mongo Atlas on Google Cloud](https://cloud.google.com/mongodb)
+- [AWS CloudWatch](https://aws.amazon.com/cloudwatch/), [Azure Monitor](https://azure.microsoft.com/products/monitor/), [Google Cloud Monitoring](https://cloud.google.com/monitoring/)
+
+In addition to PaaS hosting, Hirameku is also designed for deployment to Docker, and local development uses Docker Desktop. This　includes a number of containerized technologies to stand-in for public cloud capabilities, such as:
+
+- [nginx](https://nginx.org/)
+- [Seq](https://datalust.co/)
+- [smtp4dev](https://github.com/rnwood/smtp4dev)
+- [MongoDB](https://www.mongodb.com/)
+- [Redis](https://redis.io/)
+- [RabbitMQ](https://www.rabbitmq.com/)
+
+</section>

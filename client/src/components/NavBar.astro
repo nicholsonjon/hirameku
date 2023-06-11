@@ -1,0 +1,70 @@
+---
+// Hirameku is a cloud-native, vendor-agnostic, serverless application for
+// studying flashcards with support for localization and accessibility.
+// Copyright (C) 2023 Jon Nicholson
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import { LanguageSelector } from "astro-i18next/components";
+import { setDefaultNamespace, t } from "i18next";
+
+setDefaultNamespace("common");
+---
+
+<script>
+  import "../scripts/navbar";
+</script>
+
+<header>
+  <nav class="navbar navbar-expand-sm">
+    <div class="d-flex">
+      <a class="navbar-brand" href="/" target="_self" data-bs-toggle="tooltip" data-bs-title={t("navbar.brandTooltip")}>
+        閃
+      </a>
+      <button class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navmenu"
+        aria-controls="navmenu"
+        aria-expanded="false"
+        aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+    <div class="collapse navbar-collapse text-right" id="navmenu">
+      <ul class="navbar-nav ms-auto flex-nowrap">
+        <li class="nav-item">
+          <LanguageSelector
+            class="language-selector"
+            languageMapping={
+              {
+                en: "🇺🇸 English",
+                jp: "🇯🇵 日本語",
+              }
+            } />
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/register" target="_self" data-bs-toggle="tooltip" data-bs-title={t("navbar.registerTooltip")}>
+            {t("navbar.register")}
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/sign-in" target="_self" data-bs-toggle="tooltip" data-bs-title={t("navbar.signInTooltip")}>
+            {t("navbar.signIn")}
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>

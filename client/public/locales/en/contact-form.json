@@ -1,0 +1,27 @@
+{
+    "emailAddress": {
+        "helpText": "Email Address must be in the format username@hostname.tld. Internationalized email addresses are not supported.",
+        "label": "Email Address",
+        "maxLength": "Email address must not exceed {{val, number}} characters.",
+        "minLength": "Email address must be at least {{val, number}} characters.",
+        "pattern": "Email Address must be in the format username@hostname.tld. Internationalized email addresses are not supported.",
+        "required": "Email address is required.",
+        "tooltip": "Email Address is required and will only be used for correspondence purposes. Your data are never shared or sold."
+    },
+    "feedback": {
+        "helpText": "Feedback is required and must not consist solely of whitespace.",
+        "label": "Feedback",
+        "maxLength": "Feedback must not exceed {{val, number}} characters.",
+        "minLength": "Feedback must be at least {{val, number}} characters.",
+        "pattern": "Feedback must not consist solely of whitespace and may not contain non-printable characters.",
+        "required": "Feedback is required."
+    },
+    "name": {
+        "helpText": "Name is required.",
+        "label": "Name",
+        "maxLength": "Name must not exceed {{val, number}} characters",
+        "pattern": "Name must consist solely of text and whitespace.",
+        "required": "Name is required."
+    },
+    "submitButtonName": "Send"
+}

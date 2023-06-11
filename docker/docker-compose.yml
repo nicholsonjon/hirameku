@@ -1,0 +1,162 @@
+# Hirameku is a cloud-native, vendor-agnostic, serverless application for
+# studying flashcards with support for localization and accessibility.
+# Copyright (C) 2023 Jon Nicholson
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: hirameku
+services:
+
+  cache:
+    container_name: cache
+    image: ${DOCKER_REGISTRY-}redis:6.0-alpine
+    networks:
+      - backend
+    ports:
+      - "6379:6379"
+
+  cardservice:
+    build:
+      context: ../dotnet/
+      dockerfile: CardService/src/Dockerfile
+    container_name: cardservice
+    depends_on:
+      - database
+      - logs
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    image: ${DOCKER_REGISTRY-}hirameku/cardservice
+    networks:
+      - backend
+      - frontend
+    ports:
+      - "43213:80"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+
+  client:
+    build:
+      context: ../client/
+      dockerfile: Dockerfile
+    container_name: client
+    environment:
+      - PORT=80
+    image: ${DOCKER_REGISTRY-}hirameku/client
+    networks:
+      - frontend
+    ports:
+      - "43211:80"
+
+  contactservice:
+    build:
+      context: ../dotnet/
+      dockerfile: ContactService/src/Dockerfile
+    container_name: contactservice
+    depends_on:
+      - database
+      - logs
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    image: ${DOCKER_REGISTRY-}hirameku/contactservice
+    networks:
+      - backend
+      - frontend
+    ports:
+      - "43214:80"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+
+  database:
+    build:
+      dockerfile: mongo.Dockerfile
+    container_name: database
+    image: ${DOCKER_REGISTRY-}mongo:4.0
+    networks:
+      - backend
+    ports:
+       - "27017:27017"
+
+  identityservice:
+    build:
+      context: ../dotnet/
+      dockerfile: IdentityService/src/Dockerfile
+    container_name: identityservice
+    depends_on:
+      - cache
+      - database
+      - logs
+      - messagebroker
+      - smtpserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    image: ${DOCKER_REGISTRY-}hirameku/identityservice
+    networks:
+      - backend
+      - frontend
+    ports:
+      - "43212:80"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+
+  logs:
+    container_name: logs
+    environment:
+      - ACCEPT_EULA=Y
+    image: ${DOCKER_REGISTRY-}datalust/seq:latest
+    networks:
+      - backend
+      - frontend
+    ports:
+      - "5341:80"
+
+  messagebroker:
+    container_name: messagebroker
+    image: ${DOCKER_REGISTRY-}rabbitmq:3.12-management-alpine
+    networks:
+      - backend
+    ports:
+      - "5671:5671"
+      - "15671:15671"
+
+  reverseproxy:
+    build:
+      dockerfile: nginx.Dockerfile
+    container_name: reverseproxy
+    depends_on:
+      - cardservice
+      - contactservice
+      - identityservice
+    image: ${DOCKER_REGISTRY-}nginx:stable-alpine
+    networks:
+      - frontend
+    ports:
+      - "80:80"
+
+  smtpserver:
+    container_name: smtpserver
+    image: ${DOCKER_REGISTRY-}rnwood/smtp4dev:latest
+    networks:
+      - backend
+    ports:
+      - "2525:25"
+
+networks:
+  backend:
+  frontend:

@@ -1,0 +1,75 @@
+---
+# Hirameku is a cloud-native, vendor-agnostic, serverless application for
+# studying flashcards with support for localization and accessibility.
+# Copyright (C) 2023 Jon Nicholson
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+lang: en
+layout: ../layouts/BaseLayout.astro
+title: Hirameku - Privacy Policy
+---
+
+# Privacy Policy
+
+As a non-commercial, open-source software project, maintained by privacy and security minded developers, Hirameku has no interest collecting or storing any more of your data than is necessary.
+
+<section>
+
+## Data collected
+
+In general, Hirameku collects only the information necessary to support the functions of the site. These include:
+
+1. Email address
+2. Username
+3. <span aria-describedby="password-hash-help">Password hash</span>&nbsp;<a id="password-hash-help" href="#" data-bs-toggle="tooltip" data-bs-title="Your password is never stored. We utilize OWASP recommendations to derive and store a unique hash, which makes it technically infeasible for a malicious user to obtain your password."><i class="bi bi-question-circle"></i></a>
+4. Name
+5. Cards, decks, review progress, settings, and other data pertaining to functions of the site
+6. IP address
+7. <span aria-describedby="technical-details-help">Technical details about your browser</span>&nbsp;<a id="technical-details-help" href="#" data-bs-toggle="tooltip" data-bs-title="These include things like the user agent string and various HTTP headers that are routinely sent by the browser to web servers."><i class="bi bi-question-circle"></i></a>
+
+Your data may be collected whenever you interact with Hirameku servers. Data are stored in two places: in databases and in log files. When you delete your account, your data are promptly and permanently deleted from the live databases, but not from backups. Backups may be retained for a period of up to 30 days, by which point, they are permanently deleted. Your data are not deleted from log files. As with database backups, log files are retained for a period of up to 30 days, by which point they are permanently deleted. In all cases (databases, backups, and log files), your data are only accessible to Hirameku's operators and are not made available to any third party. Every reasonable measure is taken to keep your data secure and private.
+
+If you do not consent to having these data collected, you may not use the service, as they are necessary to the function of the site.
+
+</section>
+<section>
+
+## Use of cookies
+
+Hirameku does not utilize cookies. When you log in, your authentication details are maintained using a browser mechanism called [local storage](https://html.spec.whatwg.org/multipage/webstorage.html#dom-localstorage-dev). These authentication details are sent to the Hirameku servers whenever you perform an interaction that requires you to be logged in. These details are never shared with third parties. At any time, you may clear this information from your browser by logging out.
+
+While Hirameku does not utilize cookies directly, we employ Google Analytics, which does use cookies. Please see the following section for more information.
+
+</section>
+<section>
+
+## Google Analytics
+
+Hiramku uses [Google Analytics](https://www.google.com/analytics) to collect anonymized information about users of the site. These data are used to understand how, when, and from where users are accessing the site, and what features are being utilized. This information helps us make decisions about the features of the site.
+
+If you do not want your data collected by Google Analytics, you may use the [Google Analytics Opt-out Browser Add-on](https://tools.google.com/dlpage/gaoptout), your favorite ad blocking extension or service, or a privacy-oriented browser like [Firefox](https://www.mozilla.org/en-US/firefox/browsers/) or [Brave](https://brave.com/).
+
+Use of Google Analytics is subject to the Google [Terms of Service](https://policies.google.com/terms) and [Privacy Policy](https://policies.google.com/privacy.)
+
+</section>
+<section>
+
+## Google reCAPTCHA
+
+Hirameku uses [Google reCAPTCHA](https://developers.google.com/recaptcha/) to protect against spam, abuse, and fraud. Attempting to circumvent, subvert, or abuse the reCAPTCHA service is expressly forbidden.
+
+Use of reCAPTCHA is subject to the Google [Terms of Service](https://policies.google.com/terms) and [Privacy Policy](https://policies.google.com/privacy).
+
+</section>
