@@ -18,7 +18,7 @@ Hirameku is a [Jamstack](https://jamstack.org/) application that supports any ca
 - Visual Studio 2022
 - Visual Studio Code
 
-> *Since [Astro requires 'unsafe-inline'](https://docs.astro.build/en/guides/troubleshooting/#refused-to-execute-inline-script) (thus defeating much of the benefit of CSP), it's use will be retired. The client will be ported to a React/NextJS statically generated solution.
+> *Since [Astro requires 'unsafe-inline'](https://docs.astro.build/en/guides/troubleshooting/#refused-to-execute-inline-script) (thus defeating much of the benefit of CSP), its use is intended to be retired. The client will be ported to a React/NextJS statically generated solution using server components and [next-mdx-remote](https://github.com/hashicorp/next-mdx-remote); however, that project hasn't quite caught up with NextJS. [The documentation](https://github.com/hashicorp/next-mdx-remote#react-server-components-rsc--nextjs-app-directory-support) indicates the `/next-mdx-remote/rsc` API is currently unstable, but the last release was 2023-03-01. It's also possible that Astro will come up with a solution to stop inlining scripts, which would obviate the need to migrate to NextJS. Such a feature is currently up for discussion on the [roadmap](https://github.com/withastro/roadmap/discussions/377).
 
 AWS, Azure, and Google Cloud are all planned to be supported as cloud hosts, using the following services:
 
@@ -140,7 +140,7 @@ Content Security Policy:
     img-src 'self' https://*.google-analytics.com https://*.googletagmanager.com https://www.gravatar.com;
     report-to csp-endpoint;
     require-trusted-types-for 'script';
-    script-src 'self' https://*.google.com https://*.googletagmanager.com https://www.gstatic.com/recaptcha/ https://www.recaptcha.net/recaptcha/;
+    script-src 'self' 'unsafe-inline' https://*.google.com https://*.googletagmanager.com https://www.gstatic.com/recaptcha/ https://www.recaptcha.net/recaptcha/;
     trusted-types;
     upgrade-insecure-requests;
 Report-To: {
@@ -194,9 +194,10 @@ Use JWT bearer tokens for authentication at the request level.
 ## Authorization
 
 Implement middleware to check UserStatus claim on authenticated requests
-    - UserStatus.Suspended always returns 403
-    - `UserStatus is not UserStatus.OK` returns 403 when not interacting with the IdentityService operations
-    - the middleware should port to cloud FaaS platforms
+
+- `UserStatus.Suspended` always returns 403
+- `UserStatus is not UserStatus.OK` returns 403 when not interacting with the IdentityService operations
+- the middleware should port to cloud FaaS platforms
 
 ## Databases
 
