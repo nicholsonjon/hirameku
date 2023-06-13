@@ -17,7 +17,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import "../styles/_main.scss";
-import i18next, { changeLanguage } from "i18next";
+import { changeLanguage, dir } from "i18next";
 import { HeadHrefLangs } from "astro-i18next/components";
 import NavBar from "../components/NavBar.astro";
 import Footer from "../components/Footer.astro";
@@ -29,7 +29,7 @@ changeLanguage(lang);
 ---
 
 <!DOCTYPE html>
-<html lang={i18next.language} data-bs-theme="dark">
+<html lang={lang} dir={dir(lang)} data-bs-theme="dark">
   <head>
     <base href="/" target="_blank">
     <meta charset="utf-8">

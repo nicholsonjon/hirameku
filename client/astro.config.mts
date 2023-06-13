@@ -17,8 +17,8 @@
 
 import { defineConfig } from "astro/config";
 import astroI18next from "astro-i18next";
-import react from "@astrojs/react";
 import mdx from "@astrojs/mdx";
+import react from "@astrojs/react";
 
 export default defineConfig({
   integrations: [
@@ -32,7 +32,7 @@ export default defineConfig({
   vite: {
     ssr: {
       noExternal: [
-        "bootstrap"
+        "bootstrap",
       ],
     },
   },
