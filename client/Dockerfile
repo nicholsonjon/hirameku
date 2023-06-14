@@ -19,10 +19,11 @@ FROM node:lts-alpine
 WORKDIR /app
 
 COPY ["package*.json", "./"]
-RUN npm install
+COPY ["yarn.lock", "./"]
+RUN yarn
 
 COPY ["*config.*", "./"]
 COPY ["public/", "./public/"]
 COPY ["src/", "./src/"]
 
-ENTRYPOINT npm run dev-docker
+ENTRYPOINT yarn astro dev --host
