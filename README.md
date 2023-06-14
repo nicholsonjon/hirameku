@@ -134,22 +134,13 @@ Security-related HTTP headers:
 Cross-Origin-Resource-Policy: same-origin
 Content Security Policy:
     connect-src 'self' https://*.api.hirameku.app https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;
-    default-src 'self';
-    frame-src: https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/ https://www.recaptcha.net/recaptcha/;
+    default-src 'none';
+    frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/ https://www.recaptcha.net/recaptcha/;
     font-src 'self' https://fonts.gstatic.com;
-    img-src 'self' https://*.google-analytics.com https://*.googletagmanager.com https://www.gravatar.com;
-    report-to csp-endpoint;
-    require-trusted-types-for 'script';
+    img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com https://www.gravatar.com;
+    manifest-src 'self';
     script-src 'self' 'unsafe-inline' https://*.google.com https://*.googletagmanager.com https://www.gstatic.com/recaptcha/ https://www.recaptcha.net/recaptcha/;
-    trusted-types;
-    upgrade-insecure-requests;
-Report-To: {
-    "group": "csp-endpoint",
-    "max_age": 7776000,
-    "endpoints": [
-        "url": "https://api.hirameku.app/csp/reports"
-    ]
-}
+    style-src 'self' 'unsafe-inline';
 Referrer-Policy: strict-origin-when-cross-origin
 Strict-Transport-Security: max-age=31536000; preload
 X-Content-Type-Options: nosniff
@@ -157,26 +148,6 @@ X-Frame-Options: sameorigin
 ```
 
 Google recommends using CSP nonces for Recaptcha, but that's challenging to implement for a statically generated site. Using CSP hashes might be possible, but if Google ever updates the script, that'll break the hash. Recaptcha also works with `strict-dynamic`, which might be the best option.
-
-### CSP Reports
-
-```javascript
-{
-    "csp-report": {
-        "blocked-uri": "",
-        "column-number": 0,
-        "disposition": "",
-        "document-uri": "",
-        "effective-directive": "enforce|report",
-        "line-number": 0,
-        "referrer": "",
-        "script-sample": "",
-        "source-file": "",
-        "status-code": 0,
-        "vioated-directive": ""
-    }
-}
-```
 
 ## Authentication
 
@@ -205,7 +176,6 @@ In keeping with microservices architectural best practices, each service has its
 
 - identityservice: `identityDB`
 - cardservice: `cardDB`
-- contactservice: `cspReportDB`
 
 The collections for each database follow.
 
@@ -215,10 +185,6 @@ The collections for each database follow.
     /Meanings
 - decks
 - reviews
-
-### cspReportDB
-
-- cspReports
 
 ### identityDB
 
@@ -260,22 +226,6 @@ A `card` document consists of the following properties:
 - tags*
 
 *The `expression`, `meanings/example`, `meanings/hint`, `meanings/text`, `notes`, `reading`, and `tags` properties are text indexed (to support searching)
-
-### cspReports
-
-A `cspReport` document consists of the following properties:
-
-- blockedUri
-- columnNumber
-- disposition
-- documentUri
-- effectiveDirective
-- lineNumber
-- referrer
-- scriptSample
-- sourceFile
-- statusCode
-- vioatedDirective
 
 ### decks
 
