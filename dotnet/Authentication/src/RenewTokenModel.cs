@@ -17,6 +17,8 @@
 
 namespace Hirameku.Authentication;
 
+using Newtonsoft.Json;
+
 public class RenewTokenModel
 {
     public RenewTokenModel()
@@ -25,6 +27,7 @@ public class RenewTokenModel
 
     public string ClientId { get; set; } = string.Empty;
 
+    [JsonIgnore]
     public string ClientToken { get; set; } = string.Empty;
 
     public string UserId { get; set; } = string.Empty;

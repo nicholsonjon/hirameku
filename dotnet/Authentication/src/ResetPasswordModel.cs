@@ -17,15 +17,19 @@
 
 namespace Hirameku.Authentication;
 
+using Newtonsoft.Json;
+
 public class ResetPasswordModel
 {
     public ResetPasswordModel()
     {
     }
 
+    [JsonIgnore]
     public string Password { get; set; } = string.Empty;
 
     public string RecaptchaResponse { get; set; } = string.Empty;
 
+    [JsonIgnore]
     public string SerializedToken { get; set; } = string.Empty;
 }
