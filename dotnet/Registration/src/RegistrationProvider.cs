@@ -120,13 +120,12 @@ public class RegistrationProvider : IRegistrationProvider
 
     public async Task Register(
         RegisterModel model,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default)
     {
         Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { model, hostname, action, remoteIP, cancellationToken })
+            .Property(LogProperties.Parameters, new { model, action, remoteIP, cancellationToken })
             .Message(LogMessages.EnteringMethod)
             .Log();
 
@@ -138,7 +137,6 @@ public class RegistrationProvider : IRegistrationProvider
         await this.RegisterModelValidator.ValidateAndThrowAsync(model, cancellationToken).ConfigureAwait(false);
         await this.RecaptchaResponseValidator.ValidateAndThrow(
             model.RecaptchaResponse,
-            hostname,
             action,
             remoteIP,
             cancellationToken)
@@ -234,13 +232,12 @@ public class RegistrationProvider : IRegistrationProvider
 
     public async Task<ResendVerificationEmailResult> ResendVerificationEmail(
         ResendVerificationEmailModel model,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default)
     {
         Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { model, hostname, action, remoteIP, cancellationToken, })
+            .Property(LogProperties.Parameters, new { model, action, remoteIP, cancellationToken, })
             .Message(LogMessages.EnteringMethod)
             .Log();
 
@@ -253,7 +250,6 @@ public class RegistrationProvider : IRegistrationProvider
             .ConfigureAwait(false);
         await this.RecaptchaResponseValidator.ValidateAndThrow(
             model.RecaptchaResponse,
-            hostname,
             action,
             remoteIP,
             cancellationToken)

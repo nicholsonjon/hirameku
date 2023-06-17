@@ -48,13 +48,12 @@ public class ContactProvider : IContactProvider
 
     public async Task SendFeedback(
         SendFeedbackModel model,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default)
     {
         Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { model })
+            .Property(LogProperties.Parameters, new { model, action, remoteIP, cancellationToken })
             .Message(LogMessages.EnteringMethod)
             .Log();
 
@@ -66,7 +65,6 @@ public class ContactProvider : IContactProvider
         await this.SendFeedbackModelValidator.ValidateAndThrowAsync(model, cancellationToken).ConfigureAwait(false);
         await this.RecaptchaResponseValidator.ValidateAndThrow(
             model.RecaptchaResponse,
-            hostname,
             action,
             remoteIP,
             cancellationToken)

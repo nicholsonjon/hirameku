@@ -213,13 +213,12 @@ public class AuthenticationProvider : IAuthenticationProvider
 
     public async Task<ResetPasswordResult> ResetPassword(
         ResetPasswordModel model,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default)
     {
         Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { model, hostname, action, remoteIP, cancellationToken })
+            .Property(LogProperties.Parameters, new { model, action, remoteIP, cancellationToken })
             .Message(LogMessages.EnteringMethod)
             .Log();
 
@@ -232,7 +231,6 @@ public class AuthenticationProvider : IAuthenticationProvider
             .ConfigureAwait(false);
         await this.RecaptchaResponseValidator.ValidateAndThrow(
             model.RecaptchaResponse,
-            hostname,
             action,
             remoteIP,
             cancellationToken)
@@ -276,13 +274,12 @@ public class AuthenticationProvider : IAuthenticationProvider
 
     public async Task SendPasswordReset(
         SendPasswordResetModel model,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default)
     {
         Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { model, hostname, action, remoteIP, cancellationToken })
+            .Property(LogProperties.Parameters, new { model, action, remoteIP, cancellationToken })
             .Message(LogMessages.EnteringMethod)
             .Log();
 
@@ -295,7 +292,6 @@ public class AuthenticationProvider : IAuthenticationProvider
             .ConfigureAwait(false);
         await this.RecaptchaResponseValidator.ValidateAndThrow(
             model.RecaptchaResponse,
-            hostname,
             action,
             remoteIP,
             cancellationToken)

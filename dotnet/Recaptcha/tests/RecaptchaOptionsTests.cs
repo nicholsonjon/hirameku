@@ -20,6 +20,7 @@ namespace Hirameku.Recaptcha.Tests;
 [TestClass]
 public class RecaptchaOptionsTests
 {
+    private const string ExpectedHostname = nameof(ExpectedHostname);
     private const int MaxRetries = 5;
     private const double MinimumScore = 1.0d;
     private const string SiteSecret = nameof(SiteSecret);
@@ -33,6 +34,15 @@ public class RecaptchaOptionsTests
         var target = GetTarget();
 
         Assert.IsNotNull(target);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void RecaptchaOptions_ExpectedHostname()
+    {
+        var target = GetTarget();
+
+        Assert.AreEqual(ExpectedHostname, target.ExpectedHostname);
     }
 
     [TestMethod]
@@ -84,6 +94,7 @@ public class RecaptchaOptionsTests
     {
         return new RecaptchaOptions()
         {
+            ExpectedHostname = ExpectedHostname,
             MaxRetries = MaxRetries,
             MedianFirstRetryDelay = MedianFirstRetryDelay,
             MinimumScore = MinimumScore,

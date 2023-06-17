@@ -23,7 +23,6 @@ using Moq;
 public class RecaptchaResponseValidatorTests
 {
     private const string Action = nameof(Action);
-    private const string Hostname = nameof(Hostname);
     private const string RecaptchaResponse = nameof(RecaptchaResponse);
     private const string RemoteIP = nameof(RemoteIP);
 
@@ -44,11 +43,11 @@ public class RecaptchaResponseValidatorTests
         var cancellationToken = cancellationTokenSource.Token;
         var mockClient = new Mock<IRecaptchaClient>();
         var expected = RecaptchaVerificationResult.Verified;
-        _ = mockClient.Setup(m => m.VerifyResponse(RecaptchaResponse, Hostname, Action, RemoteIP, cancellationToken))
+        _ = mockClient.Setup(m => m.VerifyResponse(RecaptchaResponse, Action, RemoteIP, cancellationToken))
             .ReturnsAsync(expected);
         var target = new RecaptchaResponseValidator(mockClient.Object);
 
-        var actual = await target.Validate(RecaptchaResponse, Hostname, Action, RemoteIP, cancellationToken)
+        var actual = await target.Validate(RecaptchaResponse, Action, RemoteIP, cancellationToken)
             .ConfigureAwait(false);
 
         Assert.AreEqual(expected, actual);

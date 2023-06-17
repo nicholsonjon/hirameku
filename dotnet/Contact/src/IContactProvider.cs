@@ -21,7 +21,6 @@ public interface IContactProvider
 {
     public Task SendFeedback(
         SendFeedbackModel model,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default);

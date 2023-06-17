@@ -18,9 +18,10 @@
 namespace Hirameku.Recaptcha;
 
 using Hirameku.Common;
-using Hirameku.Recaptcha.Properties;
+using Hirameku.Common.Properties;
 using NLog;
 using System.Globalization;
+using RecaptchaExceptions = Hirameku.Recaptcha.Properties.Exceptions;
 
 public static class IRecaptchaResponseValidatorExtensions
 {
@@ -29,36 +30,37 @@ public static class IRecaptchaResponseValidatorExtensions
     public static async Task ValidateAndThrow(
         this IRecaptchaResponseValidator instance,
         string recaptchaResponse,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default)
     {
-        Log.Trace(
-            "Entering method",
-            data: new
-            {
-                parameters = new { instance, recaptchaResponse, hostname, action, remoteIP, cancellationToken },
-            });
+        Log.ForTraceEvent()
+            .Property(
+                LogProperties.Parameters,
+                new { instance, recaptchaResponse, action, remoteIP, cancellationToken })
+            .Message(LogMessages.EnteringMethod)
+            .Log();
 
         if (instance == null)
         {
             throw new ArgumentNullException(nameof(instance));
         }
 
-        var result = await instance.Validate(recaptchaResponse, hostname, action, remoteIP, cancellationToken)
+        var result = await instance.Validate(recaptchaResponse, action, remoteIP, cancellationToken)
             .ConfigureAwait(false);
 
         if (result != RecaptchaVerificationResult.Verified)
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                Exceptions.RecaptchaVerificationFailed,
+                RecaptchaExceptions.RecaptchaVerificationFailed,
                 result);
 
             throw new RecaptchaVerificationFailedException(message);
         }
 
-        Log.Trace("Exiting method", data: default(object));
+        Log.ForTraceEvent()
+            .Message(LogMessages.ExitingMethod)
+            .Log();
     }
 }

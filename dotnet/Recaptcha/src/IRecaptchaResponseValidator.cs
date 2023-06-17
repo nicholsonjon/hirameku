@@ -21,7 +21,6 @@ public interface IRecaptchaResponseValidator
 {
     public Task<RecaptchaVerificationResult> Validate(
         string recaptchaResponse,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default);

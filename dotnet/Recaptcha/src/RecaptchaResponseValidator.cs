@@ -18,6 +18,7 @@
 namespace Hirameku.Recaptcha;
 
 using Hirameku.Common;
+using Hirameku.Common.Properties;
 using NLog;
 
 public class RecaptchaResponseValidator : IRecaptchaResponseValidator
@@ -33,28 +34,31 @@ public class RecaptchaResponseValidator : IRecaptchaResponseValidator
 
     public async Task<RecaptchaVerificationResult> Validate(
         string recaptchaResponse,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default)
     {
-        Log.Trace(
-            "Entering method",
-            data: new
-            {
-                parameters = new { recaptchaResponse, hostname, action, remoteIP, cancellationToken },
-            });
+        Log.ForTraceEvent()
+            .Property(LogProperties.Parameters, new { recaptchaResponse, action, remoteIP, cancellationToken })
+            .Message(LogMessages.EnteringMethod)
+            .Log();
 
         var result = await this.Client.VerifyResponse(
             recaptchaResponse,
-            hostname,
             action,
             remoteIP,
             cancellationToken)
             .ConfigureAwait(false);
 
-        Log.Debug("reCAPTCHA verification result", data: result);
-        Log.Trace("Exiting method", data: new { returnValue = result });
+        Log.ForDebugEvent()
+            .Property(LogProperties.Data, result)
+            .Message("reCAPTCHA verification result")
+            .Log();
+
+        Log.ForTraceEvent()
+            .Property(LogProperties.ReturnValue, result)
+            .Message(LogMessages.ExitingMethod)
+            .Log();
 
         return result;
     }

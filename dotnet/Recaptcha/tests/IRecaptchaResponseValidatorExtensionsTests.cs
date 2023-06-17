@@ -42,7 +42,6 @@ public class IRecaptchaResponseValidatorExtensionsTests
         await IRecaptchaResponseValidatorExtensions.ValidateAndThrow(
             null!,
             RecaptchaResponse,
-            Hostname,
             Action,
             RemoteIP)
             .ConfigureAwait(false);
@@ -68,13 +67,12 @@ public class IRecaptchaResponseValidatorExtensionsTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         var mockInstance = new Mock<IRecaptchaResponseValidator>();
-        _ = mockInstance.Setup(m => m.Validate(RecaptchaResponse, Hostname, Action, RemoteIP, cancellationToken))
+        _ = mockInstance.Setup(m => m.Validate(RecaptchaResponse, Action, RemoteIP, cancellationToken))
             .ReturnsAsync(result);
 
         return IRecaptchaResponseValidatorExtensions.ValidateAndThrow(
             mockInstance.Object,
             RecaptchaResponse,
-            Hostname,
             Action,
             RemoteIP,
             cancellationToken);

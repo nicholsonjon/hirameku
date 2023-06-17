@@ -41,7 +41,6 @@ public class AuthenticationControllerTests
     private const string Accept = nameof(Accept);
     private const string ContentEncoding = nameof(ContentEncoding);
     private const string ContentLanguage = nameof(ContentLanguage);
-    private const string Hostname = nameof(Hostname);
     private const string RecaptchaResponse = nameof(RecaptchaResponse);
     private const string RemoteIP = "127.0.0.1";
     private const string UserAgent = nameof(UserAgent);
@@ -124,7 +123,6 @@ public class AuthenticationControllerTests
         const ResetPasswordResult Expected = ResetPasswordResult.PasswordReset;
         _ = mockProvider.Setup(m => m.ResetPassword(
             model,
-            Hostname,
             nameof(AuthenticationController.ResetPassword),
             RemoteIP,
             cancellationToken))
@@ -152,7 +150,7 @@ public class AuthenticationControllerTests
         var mockProvider = new Mock<IAuthenticationProvider>();
         const string Action = nameof(AuthenticationController.SendPasswordReset);
         _ = mockProvider.Setup(
-            m => m.SendPasswordReset(model, Hostname, Action, RemoteIP, cancellationToken))
+            m => m.SendPasswordReset(model, Action, RemoteIP, cancellationToken))
             .Returns(Task.CompletedTask);
         var target = GetTarget(
             GetMockContextAccessor(),
@@ -241,7 +239,6 @@ public class AuthenticationControllerTests
         headers.Add(HeaderNames.ContentLanguage, ContentLanguage);
         headers.Add(HeaderNames.UserAgent, UserAgent);
         context.Connection.RemoteIpAddress = IPAddress.Parse(RemoteIP);
-        context.Request.Host = new HostString(Hostname);
 
         var mockAccessor = new Mock<IHttpContextAccessor>();
         _ = mockAccessor.Setup(m => m.HttpContext)

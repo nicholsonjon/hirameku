@@ -31,7 +31,6 @@ using RegistrationPasswordValidationResult = Hirameku.Registration.PasswordValid
 [TestClass]
 public class RegistrationControllerTests
 {
-    private const string Hostname = "localhost";
     private const string Password = TestData.Password;
     private const string RemoteIP = "127.0.0.1";
     private const string SerializedToken = "U2VyaWFsaXplZFRva2Vu";
@@ -90,7 +89,7 @@ public class RegistrationControllerTests
         var cancellationToken = cancellationTokenSource.Token;
         var mockProvider = new Mock<IRegistrationProvider>();
         _ = mockProvider.Setup(
-            m => m.Register(model, Hostname, nameof(RegistrationController.Register), RemoteIP, cancellationToken))
+            m => m.Register(model, nameof(RegistrationController.Register), RemoteIP, cancellationToken))
             .Returns(Task.CompletedTask);
         var target = GetTarget(mockProvider);
 
@@ -164,7 +163,6 @@ public class RegistrationControllerTests
         _ = mockProvider.Setup(
             m => m.ResendVerificationEmail(
                 model,
-                Hostname,
                 nameof(RegistrationController.ResendVerificationEmail),
                 RemoteIP,
                 cancellationToken))
@@ -226,7 +224,6 @@ public class RegistrationControllerTests
         var mockContextAccessor = new Mock<IHttpContextAccessor>();
         var context = new DefaultHttpContext();
         context.Connection.RemoteIpAddress = IPAddress.Parse(RemoteIP);
-        context.Request.Headers.Add("Host", Hostname);
         _ = mockContextAccessor.Setup(m => m.HttpContext)
             .Returns(context);
         var mockPasswordValidator = new Mock<IPasswordValidator>();

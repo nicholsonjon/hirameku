@@ -68,7 +68,6 @@ public class ContactController : HiramekuController
 
             await this.Provider.SendFeedback(
                 model,
-                context.Request.Host.Host,
                 nameof(this.SendFeedback),
                 context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 cancellationToken)

@@ -77,9 +77,7 @@ public class RegistrationController : HiramekuController
 
         if (validationResult.IsValid)
         {
-            var isUserNameAvailable = await this.RegistrationProvider.IsUserNameAvailable(
-                userName,
-                cancellationToken)
+            var isUserNameAvailable = await this.RegistrationProvider.IsUserNameAvailable(userName, cancellationToken)
                 .ConfigureAwait(false);
 
             result = this.Ok(isUserNameAvailable);
@@ -118,7 +116,6 @@ public class RegistrationController : HiramekuController
 
             await this.RegistrationProvider.Register(
                 model,
-                context.Request.Host.Host,
                 nameof(this.Register),
                 context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 cancellationToken)
@@ -192,7 +189,6 @@ public class RegistrationController : HiramekuController
                 ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
             var result = await this.RegistrationProvider.ResendVerificationEmail(
                 model,
-                context.Request.Host.Host,
                 nameof(this.ResendVerificationEmail),
                 context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 cancellationToken)

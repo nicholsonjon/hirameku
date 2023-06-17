@@ -28,7 +28,6 @@ public class ContactProviderTests
     private const string Action = nameof(Action);
     private const string EmailAddress = "test@test.local";
     private const string Feedback = nameof(Feedback);
-    private const string Hostname = nameof(Hostname);
     private const string Name = nameof(Name);
     private const string RecaptchaResponse = nameof(RecaptchaResponse);
     private const string RemoteIP = nameof(RemoteIP);
@@ -50,12 +49,12 @@ public class ContactProviderTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         _ = mockRecaptchaResponseValidator.Setup(
-            m => m.Validate(RecaptchaResponse, Hostname, Action, RemoteIP, cancellationToken))
+            m => m.Validate(RecaptchaResponse, Action, RemoteIP, cancellationToken))
             .ReturnsAsync(RecaptchaVerificationResult.Verified);
         var target = GetTarget(mockRecaptchaResponseValidator: mockRecaptchaResponseValidator);
         var model = GetModel();
 
-        await target.SendFeedback(model, Hostname, Action, RemoteIP, cancellationToken).ConfigureAwait(false);
+        await target.SendFeedback(model, Action, RemoteIP, cancellationToken).ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -65,7 +64,7 @@ public class ContactProviderTests
     {
         var target = GetTarget();
 
-        await target.SendFeedback(new SendFeedbackModel(), Action, Hostname, RemoteIP).ConfigureAwait(false);
+        await target.SendFeedback(new SendFeedbackModel(), Action, RemoteIP).ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -75,7 +74,7 @@ public class ContactProviderTests
     {
         var target = GetTarget();
 
-        await target.SendFeedback(null!, Action, Hostname, RemoteIP).ConfigureAwait(false);
+        await target.SendFeedback(null!, Action, RemoteIP).ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -87,12 +86,12 @@ public class ContactProviderTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         _ = mockRecaptchaResponseValidator.Setup(
-            m => m.Validate(RecaptchaResponse, Hostname, Action, RemoteIP, cancellationToken))
+            m => m.Validate(RecaptchaResponse, Action, RemoteIP, cancellationToken))
             .ReturnsAsync(RecaptchaVerificationResult.NotVerified);
         var target = GetTarget(mockRecaptchaResponseValidator: mockRecaptchaResponseValidator);
         var model = GetModel();
 
-        await target.SendFeedback(model, Hostname, Action, RemoteIP, cancellationToken).ConfigureAwait(false);
+        await target.SendFeedback(model, Action, RemoteIP, cancellationToken).ConfigureAwait(false);
 
         Assert.Fail(nameof(RecaptchaVerificationFailedException) + " expected");
     }

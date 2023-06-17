@@ -45,7 +45,6 @@ public class AuthenticationProviderTests
     private const string ContentEncoding = nameof(ContentEncoding);
     private const string ContentLanguage = nameof(ContentLanguage);
     private const string EmailAddress = nameof(EmailAddress);
-    private const string Hostname = nameof(Hostname);
     private const int MaxPasswordAttempts = 10;
     private const string Name = nameof(Name);
     private const string Password = TestData.Password;
@@ -197,7 +196,6 @@ public class AuthenticationProviderTests
 
         var actualResult = await target.ResetPassword(
             GetResetPasswordModel(),
-            Hostname,
             Action,
             RemoteIP,
             cancellationToken)
@@ -213,7 +211,7 @@ public class AuthenticationProviderTests
     {
         var target = GetTarget();
 
-        _ = await target.ResetPassword(new ResetPasswordModel(), Hostname, Action, RemoteIP).ConfigureAwait(false);
+        _ = await target.ResetPassword(new ResetPasswordModel(), Action, RemoteIP).ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -223,7 +221,7 @@ public class AuthenticationProviderTests
     {
         var target = GetTarget();
 
-        _ = await target.ResetPassword(null!, Hostname, Action, RemoteIP).ConfigureAwait(false);
+        _ = await target.ResetPassword(null!, Action, RemoteIP).ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -247,7 +245,7 @@ public class AuthenticationProviderTests
                 VerificationTokenVerificationResult.Verified,
                 cancellationToken));
 
-        _ = await target.ResetPassword(GetResetPasswordModel(), Hostname, Action, RemoteIP, cancellationToken)
+        _ = await target.ResetPassword(GetResetPasswordModel(), Action, RemoteIP, cancellationToken)
             .ConfigureAwait(false);
 
         mockCachedValueDao.Verify();
@@ -269,7 +267,7 @@ public class AuthenticationProviderTests
             mockPasswordValidator: mockPasswordValidator,
             mockRecaptchaResponseValidator: mockRecaptchaValidator);
 
-        _ = await target.ResetPassword(GetResetPasswordModel(), Hostname, Action, RemoteIP).ConfigureAwait(false);
+        _ = await target.ResetPassword(GetResetPasswordModel(), Action, RemoteIP).ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -283,7 +281,7 @@ public class AuthenticationProviderTests
             mockRecaptchaResponseValidator: GetMockRecaptchaResponseValidator(),
             mockUserDao: GetMockUserDao(null!));
 
-        _ = await target.ResetPassword(GetResetPasswordModel(), Hostname, Action, RemoteIP).ConfigureAwait(false);
+        _ = await target.ResetPassword(GetResetPasswordModel(), Action, RemoteIP).ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -298,7 +296,7 @@ public class AuthenticationProviderTests
             mockRecaptchaResponseValidator: GetMockRecaptchaResponseValidator(),
             mockUserDao: mockUserDao);
 
-        _ = await target.ResetPassword(GetResetPasswordModel(), Hostname, Action, RemoteIP).ConfigureAwait(false);
+        _ = await target.ResetPassword(GetResetPasswordModel(), Action, RemoteIP).ConfigureAwait(false);
     }
 
     [TestMethod]
@@ -320,7 +318,7 @@ public class AuthenticationProviderTests
     {
         var target = GetTarget();
 
-        await target.SendPasswordReset(new SendPasswordResetModel(), Hostname, Action, RemoteIP).ConfigureAwait(false);
+        await target.SendPasswordReset(new SendPasswordResetModel(), Action, RemoteIP).ConfigureAwait(false);
 
         Assert.Fail(nameof(ValidationException) + " expected");
     }
@@ -332,7 +330,7 @@ public class AuthenticationProviderTests
     {
         var target = GetTarget();
 
-        await target.SendPasswordReset(null!, Hostname, Action, RemoteIP).ConfigureAwait(false);
+        await target.SendPasswordReset(null!, Action, RemoteIP).ConfigureAwait(false);
 
         Assert.Fail(nameof(ArgumentNullException) + " expected");
     }
@@ -724,7 +722,7 @@ public class AuthenticationProviderTests
     {
         var mockValidator = new Mock<IRecaptchaResponseValidator>();
         mockValidator.Setup(
-            m => m.Validate(RecaptchaResponse, Hostname, Action, RemoteIP, cancellationToken))
+            m => m.Validate(RecaptchaResponse, Action, RemoteIP, cancellationToken))
             .ReturnsAsync(result)
             .Verifiable();
 
@@ -937,7 +935,7 @@ public class AuthenticationProviderTests
             mockUserDao: mockUserDao,
             mockVerificationDao: mockVerificationDao);
 
-        await target.SendPasswordReset(GetSendPasswordResetModel(), Hostname, Action, RemoteIP, cancellationToken)
+        await target.SendPasswordReset(GetSendPasswordResetModel(), Action, RemoteIP, cancellationToken)
             .ConfigureAwait(false);
     }
 }

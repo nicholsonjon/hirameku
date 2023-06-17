@@ -38,7 +38,6 @@ public class RegistrationProviderTests
 {
     private const string Action = nameof(Action);
     private const string EmailAddress = "test@test.local";
-    private const string Hostname = "localhost";
     private const string Name = nameof(Name);
     private const string Password = TestData.Password;
     private const string Pepper = TestData.Pepper;
@@ -146,7 +145,7 @@ public class RegistrationProviderTests
         var model = new RegisterModel();
         var target = GetTarget();
 
-        await target.Register(model, Hostname, Action, RemoteIP).ConfigureAwait(false);
+        await target.Register(model, Action, RemoteIP).ConfigureAwait(false);
 
         Assert.Fail(nameof(ArgumentNullException) + " expected");
     }
@@ -158,7 +157,7 @@ public class RegistrationProviderTests
     {
         var target = GetTarget();
 
-        await target.Register(null!, Hostname, Action, RemoteIP).ConfigureAwait(false);
+        await target.Register(null!, Action, RemoteIP).ConfigureAwait(false);
 
         Assert.Fail(nameof(ArgumentNullException) + " expected");
     }
@@ -180,7 +179,7 @@ public class RegistrationProviderTests
             mockPasswordValidator: GetMockPasswordValidator(cancellationToken: cancellationToken),
             mockRecaptchaResponseValidator: mockRecaptchaValidator);
 
-        await target.Register(GetRegisterModel(), Hostname, Action, RemoteIP, cancellationToken)
+        await target.Register(GetRegisterModel(), Action, RemoteIP, cancellationToken)
             .ConfigureAwait(false);
 
         Assert.Fail(nameof(RecaptchaVerificationFailedException) + " expected");
@@ -220,7 +219,7 @@ public class RegistrationProviderTests
         model.EmailAddress = emailAddress;
         model.UserName = userName;
 
-        await target.Register(model, Hostname, Action, RemoteIP, cancellationToken)
+        await target.Register(model, Action, RemoteIP, cancellationToken)
             .ConfigureAwait(false);
 
         Assert.Fail(nameof(UserAlreadyExistsException) + " expected");
@@ -249,7 +248,7 @@ public class RegistrationProviderTests
             .ReturnsAsync(document);
         var target = GetTarget(mockRecaptchaResponseValidator: mockRecaptchaClient, mockUserDao: mockUserDao);
 
-        await target.Register(GetRegisterModel(), Hostname, Action, RemoteIP, cancellationToken)
+        await target.Register(GetRegisterModel(), Action, RemoteIP, cancellationToken)
             .ConfigureAwait(false);
 
         Assert.Fail(nameof(OperationCanceledException) + " expected");
@@ -278,7 +277,7 @@ public class RegistrationProviderTests
             .ReturnsAsync(new SaveResult());
         var target = GetTarget(mockUserDao: mockUserDao);
 
-        await target.Register(GetRegisterModel(), Hostname, Action, RemoteIP, cancellationToken)
+        await target.Register(GetRegisterModel(), Action, RemoteIP, cancellationToken)
             .ConfigureAwait(false);
 
         Assert.Fail(nameof(OperationCanceledException) + " expected");
@@ -408,7 +407,7 @@ public class RegistrationProviderTests
     {
         var target = GetTarget();
 
-        _ = await target.ResendVerificationEmail(new ResendVerificationEmailModel(), Hostname, Action, RemoteIP)
+        _ = await target.ResendVerificationEmail(new ResendVerificationEmailModel(), Action, RemoteIP)
             .ConfigureAwait(false);
 
         Assert.Fail(nameof(ValidationException) + " expected");
@@ -421,7 +420,7 @@ public class RegistrationProviderTests
     {
         var target = GetTarget();
 
-        _ = await target.ResendVerificationEmail(null!, Hostname, Action, RemoteIP)
+        _ = await target.ResendVerificationEmail(null!, Action, RemoteIP)
             .ConfigureAwait(false);
 
         Assert.Fail(nameof(ArgumentNullException) + " expected");
@@ -626,7 +625,7 @@ public class RegistrationProviderTests
     {
         var mockValidator = new Mock<IRecaptchaResponseValidator>();
         mockValidator.Setup(
-            m => m.Validate(RecaptchaResponse, Hostname, Action, RemoteIP, cancellationToken))
+            m => m.Validate(RecaptchaResponse, Action, RemoteIP, cancellationToken))
             .ReturnsAsync(result)
             .Verifiable();
 
@@ -810,7 +809,7 @@ public class RegistrationProviderTests
             mockVerificationDao: mockVerificationDao,
             mockVerificationOptions: GetMockVerificationOptions());
 
-        await target.Register(model, Hostname, Action, RemoteIP, cancellationToken).ConfigureAwait(false);
+        await target.Register(model, Action, RemoteIP, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<ResendVerificationEmailResult> RunResendVerificationEmailTest(
@@ -843,7 +842,6 @@ public class RegistrationProviderTests
 
         return await target.ResendVerificationEmail(
             GetResendVerificationEmailModel(),
-            Hostname,
             Action,
             RemoteIP,
             cancellationToken)

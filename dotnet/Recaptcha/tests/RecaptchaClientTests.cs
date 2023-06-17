@@ -90,7 +90,7 @@ public class RecaptchaClientTests
         var recaptchaResponse = GetRecaptchaResponse();
         recaptchaResponse.Hostname = string.Empty;
 
-        await RunAndAssertVerifyReponse(RecaptchaVerificationResult.InvalidHost, recaptchaResponse)
+        await RunAndAssertVerifyReponse(RecaptchaVerificationResult.InvalidHost, recaptchaResponse, "invalid-host")
             .ConfigureAwait(false);
     }
 
@@ -122,22 +122,7 @@ public class RecaptchaClientTests
     {
         var target = GetTarget();
 
-        _ = await target.VerifyResponse(RecaptchaResponse, Hostname, action, RemoteIP, default).ConfigureAwait(false);
-
-        Assert.Fail(nameof(ArgumentException) + " expected");
-    }
-
-    [TestMethod]
-    [TestCategory(TestCategories.Unit)]
-    [ExpectedException(typeof(ArgumentException))]
-    [DataRow(null, DisplayName = nameof(RecaptchaClient_VerifyResponse_Hostname_Throws) + "(null)")]
-    [DataRow("", DisplayName = nameof(RecaptchaClient_VerifyResponse_Hostname_Throws) + "(string.Empty)")]
-    [DataRow(" \t\r\n", DisplayName = nameof(RecaptchaClient_VerifyResponse_Hostname_Throws) + "(WhiteSpace)")]
-    public async Task RecaptchaClient_VerifyResponse_Hostname_Throws(string hostname)
-    {
-        var target = GetTarget();
-
-        _ = await target.VerifyResponse(RecaptchaResponse, hostname, Action, RemoteIP, default).ConfigureAwait(false);
+        _ = await target.VerifyResponse(RecaptchaResponse, action, RemoteIP, default).ConfigureAwait(false);
 
         Assert.Fail(nameof(ArgumentException) + " expected");
     }
@@ -152,7 +137,7 @@ public class RecaptchaClientTests
     {
         var target = GetTarget();
 
-        _ = await target.VerifyResponse(recaptchaResponse, Hostname, Action, RemoteIP, default).ConfigureAwait(false);
+        _ = await target.VerifyResponse(recaptchaResponse, Action, RemoteIP, default).ConfigureAwait(false);
 
         Assert.Fail(nameof(ArgumentException) + " expected");
     }
@@ -167,7 +152,7 @@ public class RecaptchaClientTests
     {
         var target = GetTarget();
 
-        _ = await target.VerifyResponse(RecaptchaResponse, Hostname, Action, remoteIP, default).ConfigureAwait(false);
+        _ = await target.VerifyResponse(RecaptchaResponse, Action, remoteIP, default).ConfigureAwait(false);
 
         Assert.Fail(nameof(ArgumentException) + " expected");
     }
@@ -227,7 +212,8 @@ public class RecaptchaClientTests
 
     private static async Task RunAndAssertVerifyReponse(
         RecaptchaVerificationResult expectedResult,
-        RecaptchaResponse? recaptchaResponse = default)
+        RecaptchaResponse? recaptchaResponse = default,
+        string expectedHostname = Hostname)
     {
         using var responseMessage = new HttpResponseMessage() { Content = GetResponseContent(recaptchaResponse) };
         var mockHandler = new Mock<HttpMessageHandler>();
@@ -243,6 +229,7 @@ public class RecaptchaClientTests
         _ = mockOptions.Setup(m => m.Value)
             .Returns(new RecaptchaOptions()
             {
+                ExpectedHostname = expectedHostname,
                 MinimumScore = MinimumScore,
                 SiteSecret = SiteSecret,
                 VerificationUrl = VerificationUrl,
@@ -250,7 +237,7 @@ public class RecaptchaClientTests
         using var client = new HttpClient(mockHandler.Object);
         var target = new RecaptchaClient(client, mockOptions.Object);
 
-        var actualResult = await target.VerifyResponse(RecaptchaResponse, Hostname, Action, RemoteIP, cancellationToken)
+        var actualResult = await target.VerifyResponse(RecaptchaResponse, Action, RemoteIP, cancellationToken)
             .ConfigureAwait(false);
 
         Assert.AreEqual(expectedResult, actualResult);

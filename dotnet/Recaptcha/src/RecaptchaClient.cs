@@ -18,7 +18,7 @@
 namespace Hirameku.Recaptcha;
 
 using Hirameku.Common;
-using Hirameku.Recaptcha.Properties;
+using Hirameku.Common.Properties;
 using Microsoft.Extensions.Options;
 using NLog;
 using System.Diagnostics.CodeAnalysis;
@@ -29,6 +29,7 @@ using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Text.Json;
 using System.Threading;
+using RecaptchaExceptions = Hirameku.Recaptcha.Properties.Exceptions;
 
 public class RecaptchaClient : IRecaptchaClient
 {
@@ -56,57 +57,50 @@ public class RecaptchaClient : IRecaptchaClient
 
     public async Task<RecaptchaVerificationResult> VerifyResponse(
         string recaptchaResponse,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default)
     {
-        Log.Trace(
-            "Entering method",
-            data: new
-            {
-                parameters = new { recaptchaResponse, hostname, action, remoteIP },
-            });
+        Log.ForTraceEvent()
+            .Property(LogProperties.Parameters, new { recaptchaResponse, action, remoteIP, cancellationToken })
+            .Message(LogMessages.EnteringMethod)
+            .Log();
 
         if (string.IsNullOrWhiteSpace(recaptchaResponse))
         {
-            throw new ArgumentException(Exceptions.StringNullOrWhiteSpace, nameof(recaptchaResponse));
-        }
-
-        if (string.IsNullOrWhiteSpace(hostname))
-        {
-            throw new ArgumentException(Exceptions.StringNullOrWhiteSpace, nameof(hostname));
+            throw new ArgumentException(RecaptchaExceptions.StringNullOrWhiteSpace, nameof(recaptchaResponse));
         }
 
         if (string.IsNullOrWhiteSpace(action))
         {
-            throw new ArgumentException(Exceptions.StringNullOrWhiteSpace, nameof(action));
+            throw new ArgumentException(RecaptchaExceptions.StringNullOrWhiteSpace, nameof(action));
         }
 
         if (string.IsNullOrWhiteSpace(remoteIP))
         {
-            throw new ArgumentException(Exceptions.StringNullOrWhiteSpace, nameof(remoteIP));
+            throw new ArgumentException(RecaptchaExceptions.StringNullOrWhiteSpace, nameof(remoteIP));
         }
 
         var response = await this.VerifyResponse(recaptchaResponse, remoteIP, cancellationToken)
             .ConfigureAwait(false);
-        var result = this.GetRecaptchaVerificationResult(hostname, action, response);
+        var result = this.GetRecaptchaVerificationResult(action, response);
 
-        Log.Trace("Exiting method", data: new { returnValue = result });
+        Log.ForTraceEvent()
+            .Property(LogProperties.ReturnValue, new { returnValue = result })
+            .Message(LogMessages.ExitingMethod)
+            .Log();
 
         return result;
     }
 
     [SuppressMessage("Performance", "CA1851:Possible multiple enumerations of 'IEnumerable' collection", Justification = "Not possible in this context")]
-    private RecaptchaVerificationResult GetRecaptchaVerificationResult(
-        string hostname,
-        string action,
-        RecaptchaResponse response)
+    private RecaptchaVerificationResult GetRecaptchaVerificationResult(string action, RecaptchaResponse response)
     {
         RecaptchaVerificationResult result;
         var errorCodes = response.ErrorCodes ?? Enumerable.Empty<string>();
+        var options = this.Options.Value;
 
-        if (!string.Equals(hostname, response.Hostname, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(response.Hostname, options.ExpectedHostname, StringComparison.OrdinalIgnoreCase))
         {
             result = RecaptchaVerificationResult.InvalidHost;
         }
@@ -122,7 +116,7 @@ public class RecaptchaClient : IRecaptchaClient
             {
                 var message = string.Format(
                     CultureInfo.InvariantCulture,
-                    Exceptions.UnexpectedRecaptchaError,
+                    RecaptchaExceptions.UnexpectedRecaptchaError,
                     string.Join(", ", UnexpectedErrorCodes));
 
                 throw new InvalidOperationException(message);
@@ -134,8 +128,6 @@ public class RecaptchaClient : IRecaptchaClient
         }
         else
         {
-            var options = this.Options.Value;
-
             result = response.Success && options.MinimumScore <= response.Score
                 ? RecaptchaVerificationResult.Verified
                 : RecaptchaVerificationResult.NotVerified;
@@ -157,7 +149,10 @@ public class RecaptchaClient : IRecaptchaClient
             Secret = options.SiteSecret,
         };
 
-        Log.Debug("reCAPTCHA API request", data: new { recaptchaRequest });
+        Log.ForDebugEvent()
+            .Property(LogProperties.Data, recaptchaRequest)
+            .Message("reCAPTCHA API request")
+            .Log();
 
         var mediaType = new MediaTypeHeaderValue(MediaTypeNames.Application.Json);
         using var requestContent = JsonContent.Create(recaptchaRequest, mediaType, JsonSerializerOptions.Value);
@@ -171,7 +166,10 @@ public class RecaptchaClient : IRecaptchaClient
                 .ConfigureAwait(false)
             : null;
 
-        Log.Debug("reCAPTCHA API response", data: new { recaptchaResponse });
+        Log.ForDebugEvent()
+            .Property(LogProperties.Data, recaptchaResponse)
+            .Message("reCAPTCHA API request")
+            .Log();
 
         return recaptchaResponse ?? new RecaptchaResponse();
     }

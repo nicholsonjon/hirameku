@@ -25,14 +25,12 @@ public interface IAuthenticationProvider
 
     public Task<ResetPasswordResult> ResetPassword(
         ResetPasswordModel model,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default);
 
     public Task SendPasswordReset(
         SendPasswordResetModel model,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default);

@@ -23,7 +23,6 @@ public interface IRegistrationProvider
 
     public Task Register(
         RegisterModel model,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default);
@@ -32,7 +31,6 @@ public interface IRegistrationProvider
 
     public Task<ResendVerificationEmailResult> ResendVerificationEmail(
         ResendVerificationEmailModel model,
-        string hostname,
         string action,
         string remoteIP,
         CancellationToken cancellationToken = default);

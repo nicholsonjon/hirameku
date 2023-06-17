@@ -136,7 +136,6 @@ public class AuthenticationController : HiramekuController
                 ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
             var result = await this.AuthenticationProvider.ResetPassword(
                 model,
-                context.Request.Host.Host,
                 nameof(this.ResetPassword),
                 context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 cancellationToken)
@@ -177,7 +176,6 @@ public class AuthenticationController : HiramekuController
                 ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
             await this.AuthenticationProvider.SendPasswordReset(
                 model,
-                context.Request.Host.Host,
                 nameof(this.SendPasswordReset),
                 context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 cancellationToken)

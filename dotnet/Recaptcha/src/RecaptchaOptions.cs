@@ -26,6 +26,8 @@ public class RecaptchaOptions
     {
     }
 
+    public string ExpectedHostname { get; set; } = string.Empty;
+
     public int MaxRetries { get; set; }
 
     public TimeSpan MedianFirstRetryDelay { get; set; }

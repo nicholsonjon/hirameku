@@ -26,7 +26,6 @@ using System.Net;
 [TestClass]
 public class ContactControllerTests
 {
-    private const string Hostname = "localhost";
     private const string RemoteIP = "127.0.0.1";
 
     [TestMethod]
@@ -53,7 +52,7 @@ public class ContactControllerTests
         var cancellationToken = cancellationTokenSource.Token;
         var mockProvider = new Mock<IContactProvider>();
         _ = mockProvider.Setup(
-            m => m.SendFeedback(model, Hostname, nameof(ContactController.SendFeedback), RemoteIP, cancellationToken))
+            m => m.SendFeedback(model, nameof(ContactController.SendFeedback), RemoteIP, cancellationToken))
             .Returns(Task.CompletedTask);
         var target = GetTarget(mockProvider);
 
@@ -71,7 +70,7 @@ public class ContactControllerTests
         var cancellationToken = cancellationTokenSource.Token;
         var mockProvider = new Mock<IContactProvider>();
         _ = mockProvider.Setup(
-            m => m.SendFeedback(model, Hostname, nameof(ContactController.SendFeedback), RemoteIP, cancellationToken))
+            m => m.SendFeedback(model, nameof(ContactController.SendFeedback), RemoteIP, cancellationToken))
             .Returns(Task.CompletedTask);
         var target = GetTarget(mockProvider);
 
@@ -87,7 +86,6 @@ public class ContactControllerTests
         var mockContextAccessor = new Mock<IHttpContextAccessor>();
         var context = new DefaultHttpContext();
         context.Connection.RemoteIpAddress = IPAddress.Parse(RemoteIP);
-        context.Request.Headers.Add("Host", Hostname);
         _ = mockContextAccessor.Setup(m => m.HttpContext)
             .Returns(context);
 
