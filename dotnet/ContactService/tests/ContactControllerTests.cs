@@ -17,6 +17,7 @@
 
 namespace Hirameku.ContactService.Tests;
 
+using FluentValidation;
 using Hirameku.Contact;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -43,7 +44,7 @@ public class ContactControllerTests
     {
         var model = new SendFeedbackModel()
         {
-            EmailAddress = "test@test.local",
+            EmailAddress = nameof(SendFeedbackModel.EmailAddress),
             Feedback = nameof(SendFeedbackModel.Feedback),
             Name = nameof(SendFeedbackModel.Name),
             RecaptchaResponse = nameof(SendFeedbackModel.RecaptchaResponse),
@@ -71,7 +72,7 @@ public class ContactControllerTests
         var mockProvider = new Mock<IContactProvider>();
         _ = mockProvider.Setup(
             m => m.SendFeedback(model, nameof(ContactController.SendFeedback), RemoteIP, cancellationToken))
-            .Returns(Task.CompletedTask);
+            .ThrowsAsync(new ValidationException(nameof(ContactController_SendFeedback_BadRequest)));
         var target = GetTarget(mockProvider);
 
         var result = await target.SendFeedback(model, cancellationToken).ConfigureAwait(false);
@@ -89,9 +90,6 @@ public class ContactControllerTests
         _ = mockContextAccessor.Setup(m => m.HttpContext)
             .Returns(context);
 
-        return new ContactController(
-            mockContextAccessor.Object,
-            mockProvider?.Object ?? Mock.Of<IContactProvider>(),
-            new SendFeedbackModelValidator());
+        return new ContactController(mockContextAccessor.Object, mockProvider?.Object ?? Mock.Of<IContactProvider>());
     }
 }

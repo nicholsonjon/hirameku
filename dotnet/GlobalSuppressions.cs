@@ -18,5 +18,6 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA0001:XML comment analysis disabled", Justification = "Suppressed")]
+[assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1208:System using directives must be placed before other using directives", Justification = "Conflicts with default VS rules")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1633:File should have header", Justification = "Suppressed")]
 [assembly: SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1636:File header copyright text should match", Justification = "Suppressed")]

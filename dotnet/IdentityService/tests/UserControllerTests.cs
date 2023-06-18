@@ -17,34 +17,23 @@
 
 namespace Hirameku.IdentityService.Tests;
 
+using FluentValidation;
 using Hirameku.Common;
 using Hirameku.Common.Service;
 using Hirameku.TestTools;
 using Hirameku.User;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using Moq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Security.Principal;
 
 [TestClass]
 public class UserControllerTests
 {
-    private const string AccessTokenName = ".Token.access_token";
-    private const string EmailAddress = "test@test.local";
+    private const string EmailAddress = nameof(EmailAddress);
     private const string Name = nameof(Name);
-    private const string SecurityAlgorithm = SecurityAlgorithms.HmacSha512;
     private const string UserId = "1234567890abcdef12345678";
     private const string UserName = nameof(UserName);
-    private static readonly Uri Localhost = new("http://localhost");
-    private static readonly DateTime Now = DateTime.UtcNow;
-    private static readonly TimeSpan TokenExpiry = TimeSpan.FromMinutes(30);
-    private static readonly string SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
@@ -59,9 +48,14 @@ public class UserControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task UserController_ChangePassword_BadRequest()
     {
-        var target = GetTarget(GetUser());
+        var mockProvider = new Mock<IUserProvider>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(m => m.ChangePassword(It.IsAny<Authenticated<ChangePasswordModel>>(), cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(TestUtilities.GetUser(), mockProvider);
 
-        var result = await target.ChangePassword(new ChangePasswordModel()).ConfigureAwait(false);
+        var result = await target.ChangePassword(new ChangePasswordModel(), cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -77,7 +71,7 @@ public class UserControllerTests
         {
             CurrentPassword = nameof(ChangePasswordModel.CurrentPassword),
         };
-        var user = GetUser();
+        var user = TestUtilities.GetUser();
         var expectedResult = new TokenResponseModel(new JwtSecurityToken());
         _ = mockUserProvider.Setup(
             m => m.ChangePassword(It.IsAny<Authenticated<ChangePasswordModel>>(), cancellationToken))
@@ -85,7 +79,7 @@ public class UserControllerTests
                 (a, ct) =>
                 {
                     Assert.AreEqual(model, a.Model);
-                    Assert.AreEqual(GetJwtSecurityToken(), a.SecurityToken.RawData);
+                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .ReturnsAsync(expectedResult);
@@ -121,12 +115,12 @@ public class UserControllerTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         var mockUserProvider = new Mock<IUserProvider>();
-        var user = GetUser();
+        var user = TestUtilities.GetUser();
         _ = mockUserProvider.Setup(m => m.DeleteUser(It.IsAny<Authenticated<Unit>>(), cancellationToken))
             .Callback<Authenticated<Unit>, CancellationToken>(
                 (a, ct) =>
                 {
-                    Assert.AreEqual(GetJwtSecurityToken(), a.SecurityToken.RawData);
+                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .Returns(Task.CompletedTask);
@@ -157,12 +151,12 @@ public class UserControllerTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         var mockUserProvider = new Mock<IUserProvider>();
-        var user = GetUser();
+        var user = TestUtilities.GetUser();
         _ = mockUserProvider.Setup(m => m.GetUser(It.IsAny<Authenticated<Unit>>(), cancellationToken))
             .Callback<Authenticated<Unit>, CancellationToken>(
                 (a, ct) =>
                 {
-                    Assert.AreEqual(GetJwtSecurityToken(), a.SecurityToken.RawData);
+                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .ReturnsAsync(null as User);
@@ -180,13 +174,13 @@ public class UserControllerTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         var mockUserProvider = new Mock<IUserProvider>();
-        var user = GetUser();
+        var user = TestUtilities.GetUser();
         var expectedResult = new User();
         _ = mockUserProvider.Setup(m => m.GetUser(It.IsAny<Authenticated<Unit>>(), cancellationToken))
             .Callback<Authenticated<Unit>, CancellationToken>(
                 (a, ct) =>
                 {
-                    Assert.AreEqual(GetJwtSecurityToken(), a.SecurityToken.RawData);
+                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .ReturnsAsync(expectedResult);
@@ -215,9 +209,15 @@ public class UserControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task UserController_UpdateEmailAddress_BadRequest()
     {
-        var target = GetTarget(GetUser());
+        var mockProvider = new Mock<IUserProvider>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(
+            m => m.UpdateEmailAddress(It.IsAny<Authenticated<UpdateEmailAddressModel>>(), cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(TestUtilities.GetUser(), mockProvider);
 
-        var result = await target.UpdateEmailAddress(string.Empty).ConfigureAwait(false);
+        var result = await target.UpdateEmailAddress(EmailAddress, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -229,14 +229,14 @@ public class UserControllerTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         var mockUserProvider = new Mock<IUserProvider>();
-        var user = GetUser();
+        var user = TestUtilities.GetUser();
         _ = mockUserProvider.Setup(
             m => m.UpdateEmailAddress(It.IsAny<Authenticated<UpdateEmailAddressModel>>(), cancellationToken))
             .Callback<Authenticated<UpdateEmailAddressModel>, CancellationToken>(
                 (a, ct) =>
                 {
                     Assert.AreEqual(EmailAddress, a.Model.EmailAddress);
-                    Assert.AreEqual(GetJwtSecurityToken(), a.SecurityToken.RawData);
+                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .Returns(Task.CompletedTask);
@@ -268,9 +268,14 @@ public class UserControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task UserController_UpdateName_BadRequest()
     {
-        var target = GetTarget(GetUser());
+        var mockProvider = new Mock<IUserProvider>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(m => m.UpdateName(It.IsAny<Authenticated<UpdateNameModel>>(), cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(TestUtilities.GetUser(), mockProvider);
 
-        var result = await target.UpdateName(string.Empty).ConfigureAwait(false);
+        var result = await target.UpdateName(Name, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -282,7 +287,7 @@ public class UserControllerTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         var mockUserProvider = new Mock<IUserProvider>();
-        var user = GetUser();
+        var user = TestUtilities.GetUser();
         var expectedResult = new JwtSecurityToken();
         _ = mockUserProvider.Setup(
             m => m.UpdateName(It.IsAny<Authenticated<UpdateNameModel>>(), cancellationToken))
@@ -290,7 +295,7 @@ public class UserControllerTests
                 (a, ct) =>
                 {
                     Assert.AreEqual(Name, a.Model.Name);
-                    Assert.AreEqual(GetJwtSecurityToken(), a.SecurityToken.RawData);
+                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .ReturnsAsync(expectedResult);
@@ -323,9 +328,14 @@ public class UserControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task UserController_UpdateUserName_BadRequest()
     {
-        var target = GetTarget(GetUser());
+        var mockProvider = new Mock<IUserProvider>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(m => m.UpdateUserName(It.IsAny<Authenticated<UpdateUserNameModel>>(), cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(TestUtilities.GetUser(), mockProvider);
 
-        var result = await target.UpdateUserName(string.Empty).ConfigureAwait(false);
+        var result = await target.UpdateUserName(UserName, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -337,7 +347,7 @@ public class UserControllerTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         var mockUserProvider = new Mock<IUserProvider>();
-        var user = GetUser();
+        var user = TestUtilities.GetUser();
         var expectedResult = new JwtSecurityToken();
         _ = mockUserProvider.Setup(
             m => m.UpdateUserName(It.IsAny<Authenticated<UpdateUserNameModel>>(), cancellationToken))
@@ -345,7 +355,7 @@ public class UserControllerTests
                 (a, ct) =>
                 {
                     Assert.AreEqual(UserName, a.Model.UserName);
-                    Assert.AreEqual(GetJwtSecurityToken(), a.SecurityToken.RawData);
+                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .ReturnsAsync(expectedResult);
@@ -374,52 +384,9 @@ public class UserControllerTests
         Assert.IsInstanceOfType(result, typeof(UnauthorizedResult));
     }
 
-    private static string GetJwtSecurityToken()
+    private static JwtSecurityToken GetJwtSecurityToken()
     {
-        var localhost = Localhost.ToString();
-        var securityToken = TestUtilities.GetJwtSecurityToken(
-            localhost,
-            UserName,
-            UserId,
-            Name,
-            Now,
-            localhost,
-            TokenExpiry,
-            SecretKey,
-            SecurityAlgorithm);
-
-        return securityToken.RawData;
-    }
-
-    private static Mock<IHttpContextAccessor> GetMockContextAccessor(ClaimsPrincipal? user = default)
-    {
-        var authenticationTicket = new AuthenticationTicket(
-            new GenericPrincipal(Mock.Of<IIdentity>(), default),
-            new AuthenticationProperties(new Dictionary<string, string?>()
-            {
-                { AccessTokenName, GetJwtSecurityToken() },
-            }),
-            JwtBearerDefaults.AuthenticationScheme);
-        var mockAuthenticationService = new Mock<IAuthenticationService>();
-        var context = new DefaultHttpContext();
-        _ = mockAuthenticationService.Setup(m => m.AuthenticateAsync(context, default))
-            .ReturnsAsync(AuthenticateResult.Success(authenticationTicket));
-        var mockRequestServices = new Mock<IServiceProvider>();
-        _ = mockRequestServices.Setup(m => m.GetService(typeof(IAuthenticationService)))
-            .Returns(mockAuthenticationService.Object);
-
-        context.RequestServices = mockRequestServices.Object;
-
-        if (user != null)
-        {
-            context.User = user;
-        }
-
-        var mockAccessor = new Mock<IHttpContextAccessor>();
-        _ = mockAccessor.Setup(m => m.HttpContext)
-            .Returns(context);
-
-        return mockAccessor;
+        return TestUtilities.GetJwtSecurityToken(UserName, UserId, Name);
     }
 
     private static UserController GetTarget(
@@ -431,18 +398,7 @@ public class UserControllerTests
             .ReturnsAsync(PasswordValidationResult.Valid);
 
         return new UserController(
-            GetMockContextAccessor(user).Object,
-            new ChangePasswordModelValidator(mockPasswordValidator.Object),
-            new EmailAddressValidator(),
-            new NameValidator(),
-            new UserNameValidator(),
+            TestUtilities.GetMockContextAccessor(GetJwtSecurityToken(), user).Object,
             mockUserProvider?.Object ?? Mock.Of<IUserProvider>());
-    }
-
-    private static ClaimsPrincipal GetUser()
-    {
-        var identity = new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, UserId) }, "JwtBearer");
-
-        return new ClaimsPrincipal(identity);
     }
 }

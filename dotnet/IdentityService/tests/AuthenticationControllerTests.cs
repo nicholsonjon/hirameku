@@ -18,6 +18,7 @@
 namespace Hirameku.IdentityService.Tests;
 
 using AutoMapper;
+using FluentValidation;
 using Hirameku.Authentication;
 using Hirameku.Common;
 using Hirameku.Common.Service;
@@ -59,9 +60,14 @@ public class AuthenticationControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task AuthenticationController_RenewToken_BadRequest()
     {
-        var target = GetTarget();
-
-        var result = await target.RenewToken(new RenewTokenModel()).ConfigureAwait(false);
+        var mockProvider = new Mock<IAuthenticationProvider>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(
+            m => m.RenewToken(It.IsAny<AuthenticationData<RenewTokenModel>>(), cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(GetMockContextAccessor(), mockProvider);
+        var result = await target.RenewToken(new RenewTokenModel(), cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -99,9 +105,16 @@ public class AuthenticationControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task AuthenticationController_ResetPassword_BadRequest()
     {
-        var target = GetTarget();
+        var mockProvider = new Mock<IAuthenticationProvider>();
+        var model = new ResetPasswordModel();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(
+            m => m.ResetPassword(model, nameof(AuthenticationController.ResetPassword), RemoteIP, cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(GetMockContextAccessor(), mockProvider);
 
-        var result = await target.ResetPassword(new ResetPasswordModel()).ConfigureAwait(false);
+        var result = await target.ResetPassword(model, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -167,9 +180,20 @@ public class AuthenticationControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task AuthenticationController_SendPasswordReset_BadRequest()
     {
-        var target = GetTarget();
+        var mockProvider = new Mock<IAuthenticationProvider>();
+        var model = new SendPasswordResetModel();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(
+            m => m.SendPasswordReset(
+                model,
+                nameof(AuthenticationController.SendPasswordReset),
+                RemoteIP,
+                cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(GetMockContextAccessor(), mockProvider);
 
-        var result = await target.SendPasswordReset(new SendPasswordResetModel()).ConfigureAwait(false);
+        var result = await target.SendPasswordReset(model, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -178,9 +202,14 @@ public class AuthenticationControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task AuthenticationController_SignIn_BadRequest()
     {
-        var target = GetTarget();
+        var mockProvider = new Mock<IAuthenticationProvider>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(m => m.SignIn(It.IsAny<AuthenticationData<SignInModel>>(), cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(GetMockContextAccessor(), mockProvider);
 
-        var result = await target.SignIn(new SignInModel()).ConfigureAwait(false);
+        var result = await target.SignIn(new SignInModel(), cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -273,11 +302,7 @@ public class AuthenticationControllerTests
         return new AuthenticationController(
             (mockContextAccessor ?? new Mock<IHttpContextAccessor>()).Object,
             mockAuthenticationProvider?.Object ?? Mock.Of<IAuthenticationProvider>(),
-            mapper,
-            new RenewTokenModelValidator(),
-            new ResetPasswordModelValidator(mockPasswordValidator.Object),
-            new SendPasswordResetModelValidator(),
-            new SignInModelValidator());
+            mapper);
     }
 
     private static Task<IActionResult> RunRenewTokenTest(

@@ -17,15 +17,10 @@
 
 namespace Hirameku.IdentityService;
 
-using FluentValidation;
-using Hirameku.Common;
-using Hirameku.Common.Properties;
 using Hirameku.Common.Service;
 using Hirameku.Registration;
 using Microsoft.AspNetCore.Mvc;
-using NLog;
 using System;
-using PasswordValidationResult = Hirameku.Registration.PasswordValidationResult;
 using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
 [ApiController]
@@ -33,83 +28,34 @@ using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class RegistrationController : HiramekuController
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
-    public RegistrationController(
-        IHttpContextAccessor contextAccessor,
-        Base64StringValidator base64StringValidator,
-        IValidator<RegisterModel> registerModelValidator,
-        IRegistrationProvider registrationProvider,
-        IValidator<ResendVerificationEmailModel> resendVerificationEmailModelValidator,
-        UserNameValidator userNameValidator)
+    public RegistrationController(IHttpContextAccessor contextAccessor, IRegistrationProvider registrationProvider)
         : base(contextAccessor)
     {
-        this.Base64StringValidator = base64StringValidator;
-        this.RegisterModelValidator = registerModelValidator;
         this.RegistrationProvider = registrationProvider;
-        this.ResendVerificationEmailModelValidator = resendVerificationEmailModelValidator;
-        this.UserNameValidator = userNameValidator;
     }
-
-    private Base64StringValidator Base64StringValidator { get; }
-
-    private IValidator<RegisterModel> RegisterModelValidator { get; }
 
     private IRegistrationProvider RegistrationProvider { get; }
 
-    private IValidator<ResendVerificationEmailModel> ResendVerificationEmailModelValidator { get; }
-
-    private UserNameValidator UserNameValidator { get; }
-
     [HttpGet("isUserNameAvailable")]
-    public async Task<IActionResult> IsUserNameAvailable(
+    public Task<IActionResult> IsUserNameAvailable(
         [FromBody] string userName,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { userName, cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var validationResult = await this.UserNameValidator.ValidateAsync(userName, cancellationToken)
-            .ConfigureAwait(false);
-        IActionResult result;
-
-        if (validationResult.IsValid)
+        async Task<IActionResult> Action()
         {
             var isUserNameAvailable = await this.RegistrationProvider.IsUserNameAvailable(userName, cancellationToken)
                 .ConfigureAwait(false);
 
-            result = this.Ok(isUserNameAvailable);
-        }
-        else
-        {
-            result = this.ValidationProblem(validationResult);
+            return this.Ok(isUserNameAvailable);
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, result)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return result;
+        return this.ExecuteAction(new { userName, cancellationToken }, Action);
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(
-        [FromBody] RegisterModel model,
-        CancellationToken cancellationToken = default)
+    public Task<IActionResult> Register([FromBody] RegisterModel model, CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { model, cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var validationResult = await this.RegisterModelValidator.ValidateAsync(model, cancellationToken)
-            .ConfigureAwait(false);
-        IActionResult result;
-
-        if (validationResult.IsValid)
+        async Task<IActionResult> Action()
         {
             var context = this.ContextAccessor.HttpContext
                 ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
@@ -121,69 +67,33 @@ public class RegistrationController : HiramekuController
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            result = this.Accepted();
-        }
-        else
-        {
-            result = this.ValidationProblem(validationResult);
+            return this.Accepted();
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, result)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return result;
+        return this.ExecuteAction(new { model, cancellationToken }, Action);
     }
 
     [HttpPost("rejectRegistration")]
-    public async Task<IActionResult> RejectRegistration(
+    public Task<IActionResult> RejectRegistration(
         [FromBody] string token,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { token = "REDACTED", cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var validationResult = await this.Base64StringValidator.ValidateAsync(token, cancellationToken)
-            .ConfigureAwait(false);
-        IActionResult result;
-
-        if (validationResult.IsValid)
+        async Task<IActionResult> Action()
         {
             await this.RegistrationProvider.RejectRegistration(token, cancellationToken).ConfigureAwait(false);
 
-            result = this.NoContent();
-        }
-        else
-        {
-            result = this.ValidationProblem(validationResult);
+            return this.NoContent();
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, result)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return result;
+        return this.ExecuteAction(new { token, cancellationToken }, Action);
     }
 
     [HttpPost("resendVerificationEmail")]
-    public async Task<IActionResult> ResendVerificationEmail(
+    public Task<IActionResult> ResendVerificationEmail(
         [FromBody] ResendVerificationEmailModel model,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { model, cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var validationResult = await this.ResendVerificationEmailModelValidator.ValidateAsync(model, cancellationToken)
-            .ConfigureAwait(false);
-        IActionResult actionResult;
-
-        if (validationResult.IsValid)
+        async Task<IActionResult> Action()
         {
             var context = this.ContextAccessor.HttpContext
                 ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
@@ -194,73 +104,41 @@ public class RegistrationController : HiramekuController
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            actionResult = this.Ok(result);
-        }
-        else
-        {
-            actionResult = this.ValidationProblem(validationResult);
+            return this.Ok(result);
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, actionResult)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return actionResult;
+        return this.ExecuteAction(new { model, cancellationToken }, Action);
     }
 
     [HttpPost("validatePassword")]
-    public async Task<ActionResult<PasswordValidationResult>> ValidatePassword(
+    public Task<IActionResult> ValidatePassword(
         [FromBody] string password,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { password = "REDACTED", cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
+        async Task<IActionResult> Action()
+        {
+            var result = await this.RegistrationProvider.ValidatePassword(password, cancellationToken)
+                .ConfigureAwait(false);
 
-        var result = await this.RegistrationProvider.ValidatePassword(password, cancellationToken)
-            .ConfigureAwait(false);
+            return this.Ok(result);
+        }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, result)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return result;
+        return this.ExecuteAction(new { password, cancellationToken }, Action);
     }
 
     [HttpPost("verifyEmailAddress")]
-    public async Task<IActionResult> VerifyEmailAddress(
+    public Task<IActionResult> VerifyEmailAddress(
         [FromBody] string token,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { token = "REDACTED", cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var validationResult = await this.Base64StringValidator.ValidateAsync(token, cancellationToken)
-            .ConfigureAwait(false);
-        IActionResult actionResult;
-
-        if (validationResult.IsValid)
+        async Task<IActionResult> Action()
         {
             var result = await this.RegistrationProvider.VerifyEmaiAddress(token, cancellationToken)
                 .ConfigureAwait(false);
 
-            actionResult = this.Ok(result);
-        }
-        else
-        {
-            actionResult = this.ValidationProblem(validationResult);
+            return this.Ok(result);
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, actionResult)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return actionResult;
+        return this.ExecuteAction(new { token, cancellationToken }, Action);
     }
 }

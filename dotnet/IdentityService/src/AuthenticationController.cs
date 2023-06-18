@@ -18,13 +18,10 @@
 namespace Hirameku.IdentityService;
 
 using AutoMapper;
-using FluentValidation;
 using Hirameku.Authentication;
 using Hirameku.Common;
-using Hirameku.Common.Properties;
 using Hirameku.Common.Service;
 using Microsoft.AspNetCore.Mvc;
-using NLog;
 using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
 [ApiController]
@@ -32,53 +29,26 @@ using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class AuthenticationController : HiramekuController
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
     public AuthenticationController(
         IHttpContextAccessor contextAccessor,
         IAuthenticationProvider authenticationProvider,
-        IMapper mapper,
-        IValidator<RenewTokenModel> renewTokenModelValidator,
-        IValidator<ResetPasswordModel> resetPasswordModelValidator,
-        IValidator<SendPasswordResetModel> sendPasswordResetModelValidator,
-        IValidator<SignInModel> signInModelValidator)
+        IMapper mapper)
         : base(contextAccessor)
     {
         this.AuthenticationProvider = authenticationProvider;
         this.Mapper = mapper;
-        this.RenewTokenModelValidator = renewTokenModelValidator;
-        this.ResetPasswordModelValidator = resetPasswordModelValidator;
-        this.SendPasswordResetModelValidator = sendPasswordResetModelValidator;
-        this.SignInModelValidator = signInModelValidator;
     }
 
     private IAuthenticationProvider AuthenticationProvider { get; }
 
     private IMapper Mapper { get; }
 
-    private IValidator<RenewTokenModel> RenewTokenModelValidator { get; }
-
-    private IValidator<ResetPasswordModel> ResetPasswordModelValidator { get; }
-
-    private IValidator<SendPasswordResetModel> SendPasswordResetModelValidator { get; }
-
-    private IValidator<SignInModel> SignInModelValidator { get; }
-
     [HttpPost("renewToken")]
-    public async Task<IActionResult> RenewToken(
+    public Task<IActionResult> RenewToken(
         [FromBody] RenewTokenModel model,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Message(LogMessages.EnteringMethod)
-            .Property(LogProperties.Parameters, new { model, cancellationToken })
-            .Log();
-
-        var validationResult = await this.RenewTokenModelValidator.ValidateAsync(model, cancellationToken)
-            .ConfigureAwait(false);
-        IActionResult actionResult;
-
-        if (validationResult.IsValid)
+        async Task<IActionResult> Action()
         {
             var context = this.ContextAccessor.HttpContext
                 ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
@@ -94,43 +64,20 @@ public class AuthenticationController : HiramekuController
                 .ConfigureAwait(false);
             var authenticationResult = renewTokenResult.AuthenticationResult;
 
-            if (authenticationResult is AuthenticationResult.Authenticated)
-            {
-                actionResult = this.Ok(renewTokenResult.SessionToken);
-            }
-            else
-            {
-                actionResult = this.Unauthorized(authenticationResult);
-            }
-        }
-        else
-        {
-            actionResult = this.ValidationProblem(validationResult);
+            return authenticationResult is AuthenticationResult.Authenticated
+                ? this.Ok(renewTokenResult.SessionToken)
+                : this.Unauthorized(authenticationResult);
         }
 
-        Log.ForTraceEvent()
-            .Message(LogMessages.ExitingMethod)
-            .Property(LogProperties.ReturnValue, actionResult)
-            .Log();
-
-        return actionResult;
+        return this.ExecuteAction(new { model, cancellationToken }, Action);
     }
 
     [HttpPost("resetPassword")]
-    public async Task<IActionResult> ResetPassword(
+    public Task<IActionResult> ResetPassword(
         [FromBody] ResetPasswordModel model,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Message(LogMessages.EnteringMethod)
-            .Property(LogProperties.Parameters, new { model, cancellationToken })
-            .Log();
-
-        var validationResult = await this.ResetPasswordModelValidator.ValidateAsync(model, cancellationToken)
-            .ConfigureAwait(false);
-        IActionResult actionResult;
-
-        if (validationResult.IsValid)
+        async Task<IActionResult> Action()
         {
             var context = this.ContextAccessor.HttpContext
                 ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
@@ -141,36 +88,18 @@ public class AuthenticationController : HiramekuController
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            actionResult = this.Ok(result);
-        }
-        else
-        {
-            actionResult = this.ValidationProblem(validationResult);
+            return this.Ok(result);
         }
 
-        Log.ForTraceEvent()
-            .Message(LogMessages.ExitingMethod)
-            .Property(LogProperties.ReturnValue, actionResult)
-            .Log();
-
-        return actionResult;
+        return this.ExecuteAction(new { model, cancellationToken }, Action);
     }
 
     [HttpPost("sendPasswordReset")]
-    public async Task<IActionResult> SendPasswordReset(
+    public Task<IActionResult> SendPasswordReset(
         [FromBody] SendPasswordResetModel model,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Message(LogMessages.EnteringMethod)
-            .Property(LogProperties.Parameters, new { model, cancellationToken })
-            .Log();
-
-        var validationResult = await this.SendPasswordResetModelValidator.ValidateAsync(model, cancellationToken)
-            .ConfigureAwait(false);
-        IActionResult actionResult;
-
-        if (validationResult.IsValid)
+        async Task<IActionResult> Action()
         {
             var context = this.ContextAccessor.HttpContext
                 ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
@@ -181,36 +110,18 @@ public class AuthenticationController : HiramekuController
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            actionResult = this.Accepted();
-        }
-        else
-        {
-            actionResult = this.ValidationProblem(validationResult);
+            return this.Accepted();
         }
 
-        Log.ForTraceEvent()
-            .Message(LogMessages.ExitingMethod)
-            .Property(LogProperties.ReturnValue, actionResult)
-            .Log();
-
-        return actionResult;
+        return this.ExecuteAction(new { model, cancellationToken }, Action);
     }
 
     [HttpPost("signIn")]
-    public async Task<IActionResult> SignIn(
+    public Task<IActionResult> SignIn(
         [FromBody] SignInModel model,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Message(LogMessages.EnteringMethod)
-            .Property(LogProperties.Parameters, new { model, cancellationToken })
-            .Log();
-
-        var validationResult = await this.SignInModelValidator.ValidateAsync(model, cancellationToken)
-            .ConfigureAwait(false);
-        IActionResult actionResult;
-
-        if (validationResult.IsValid)
+        async Task<IActionResult> Action()
         {
             var context = this.ContextAccessor.HttpContext
                 ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
@@ -225,25 +136,11 @@ public class AuthenticationController : HiramekuController
             var signInResult = await this.AuthenticationProvider.SignIn(data, cancellationToken).ConfigureAwait(false);
             var authenticationResult = signInResult.AuthenticationResult;
 
-            if (authenticationResult is AuthenticationResult.Authenticated or AuthenticationResult.PasswordExpired)
-            {
-                actionResult = this.Ok(this.Mapper.Map<TokenResponseModel>(signInResult));
-            }
-            else
-            {
-                actionResult = this.Unauthorized(signInResult.AuthenticationResult);
-            }
-        }
-        else
-        {
-            actionResult = this.ValidationProblem(validationResult);
+            return authenticationResult is AuthenticationResult.Authenticated or AuthenticationResult.PasswordExpired
+                ? this.Ok(this.Mapper.Map<TokenResponseModel>(signInResult))
+                : this.Unauthorized(signInResult.AuthenticationResult);
         }
 
-        Log.ForTraceEvent()
-            .Message(LogMessages.ExitingMethod)
-            .Property(LogProperties.ReturnValue, actionResult)
-            .Log();
-
-        return actionResult;
+        return this.ExecuteAction(new { model, cancellationToken }, Action);
     }
 }

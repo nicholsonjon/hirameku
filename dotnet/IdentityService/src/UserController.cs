@@ -17,109 +17,50 @@
 
 namespace Hirameku.IdentityService;
 
-using FluentValidation;
 using Hirameku.Common;
-using Hirameku.Common.Properties;
 using Hirameku.Common.Service;
 using Hirameku.User;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using NLog;
-using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
 public class UserController : HiramekuController
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
-    public UserController(
-        IHttpContextAccessor contextAccessor,
-        IValidator<ChangePasswordModel> changePasswordModelValidator,
-        EmailAddressValidator emailAddressValidator,
-        NameValidator nameValidator,
-        UserNameValidator userNameValidator,
-        IUserProvider userProvider)
+    public UserController(IHttpContextAccessor contextAccessor, IUserProvider userProvider)
         : base(contextAccessor)
     {
-        this.ChangePasswordModelValidator = changePasswordModelValidator;
-        this.EmailAddressValidator = emailAddressValidator;
-        this.NameValidator = nameValidator;
-        this.UserNameValidator = userNameValidator;
         this.UserProvider = userProvider;
     }
-
-    private IValidator<ChangePasswordModel> ChangePasswordModelValidator { get; }
-
-    private EmailAddressValidator EmailAddressValidator { get; }
-
-    private NameValidator NameValidator { get; }
-
-    private UserNameValidator UserNameValidator { get; }
 
     private IUserProvider UserProvider { get; }
 
     [HttpPost("changePassword")]
-    public async Task<IActionResult> ChangePassword(
+    public Task<IActionResult> ChangePassword(
         [FromBody] ChangePasswordModel model,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { model, cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var user = this.ContextAccessor.HttpContext?.User;
-        IActionResult result;
-
-        if (user?.Identity?.IsAuthenticated ?? false)
+        async Task<IActionResult> Action(ClaimsPrincipal user)
         {
-            var validationResult = await this.ChangePasswordModelValidator.ValidateAsync(model, cancellationToken)
+            var responseModel = await this.UserProvider.ChangePassword(
+                new Authenticated<ChangePasswordModel>(
+                    model,
+                    await this.GetSecurityToken().ConfigureAwait(false),
+                    user),
+                cancellationToken)
                 .ConfigureAwait(false);
 
-            if (validationResult.IsValid)
-            {
-                var responseModel = await this.UserProvider.ChangePassword(
-                    new Authenticated<ChangePasswordModel>(
-                        model,
-                        await this.GetSecurityToken().ConfigureAwait(false),
-                        user),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                result = this.Ok(responseModel);
-            }
-            else
-            {
-                result = this.ValidationProblem(validationResult);
-            }
-        }
-        else
-        {
-            result = this.Unauthorized();
+            return this.Ok(responseModel);
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, result)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return result;
+        return this.AuthorizeAndExecuteAction(new { model, cancellationToken }, Action);
     }
 
     [HttpDelete]
-    public async Task<IActionResult> Delete(CancellationToken cancellationToken = default)
+    public Task<IActionResult> Delete(CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var user = this.ContextAccessor.HttpContext?.User;
-        IActionResult result;
-
-        if (user?.Identity?.IsAuthenticated ?? false)
+        async Task<IActionResult> Action(ClaimsPrincipal user)
         {
             await this.UserProvider.DeleteUser(
                 new Authenticated<Unit>(
@@ -128,33 +69,16 @@ public class UserController : HiramekuController
                     user),
                 cancellationToken).ConfigureAwait(false);
 
-            result = this.NoContent();
-        }
-        else
-        {
-            result = this.Unauthorized();
+            return this.NoContent();
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, result)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return result;
+        return this.AuthorizeAndExecuteAction(new { cancellationToken }, Action);
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(CancellationToken cancellationToken = default)
+    public Task<IActionResult> Get(CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var user = this.ContextAccessor.HttpContext?.User;
-        IActionResult result;
-
-        if (user?.Identity?.IsAuthenticated ?? false)
+        async Task<IActionResult> Action(ClaimsPrincipal user)
         {
             var userModel = await this.UserProvider.GetUser(
                 new Authenticated<Unit>(
@@ -163,172 +87,68 @@ public class UserController : HiramekuController
                     user),
                 cancellationToken).ConfigureAwait(false);
 
-            result = userModel != null ? this.Ok(userModel) : this.NotFound();
-        }
-        else
-        {
-            result = this.Unauthorized();
+            return userModel != null ? this.Ok(userModel) : this.NotFound();
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, result)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return result;
+        return this.AuthorizeAndExecuteAction(new { cancellationToken }, Action);
     }
 
     [HttpPatch("updateEmailAddress")]
-    public async Task<IActionResult> UpdateEmailAddress(
+    public Task<IActionResult> UpdateEmailAddress(
         [FromBody] string emailAddress,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { emailAddress, cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var user = this.ContextAccessor.HttpContext?.User;
-        IActionResult result;
-
-        if (user?.Identity?.IsAuthenticated ?? false)
+        async Task<IActionResult> Action(ClaimsPrincipal user)
         {
-            var validationResult = await this.EmailAddressValidator.ValidateAsync(emailAddress, cancellationToken)
+            await this.UserProvider.UpdateEmailAddress(
+                new Authenticated<UpdateEmailAddressModel>(
+                    new UpdateEmailAddressModel() { EmailAddress = emailAddress },
+                    await this.GetSecurityToken().ConfigureAwait(false),
+                    user),
+                cancellationToken)
                 .ConfigureAwait(false);
 
-            if (validationResult.IsValid)
-            {
-                await this.UserProvider.UpdateEmailAddress(
-                    new Authenticated<UpdateEmailAddressModel>(
-                        new UpdateEmailAddressModel() { EmailAddress = emailAddress },
-                        await this.GetSecurityToken().ConfigureAwait(false),
-                        user),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                result = this.NoContent();
-            }
-            else
-            {
-                result = this.ValidationProblem(validationResult);
-            }
-        }
-        else
-        {
-            result = this.Unauthorized();
+            return this.NoContent();
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, result)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return result;
+        return this.AuthorizeAndExecuteAction(new { emailAddress, cancellationToken }, Action);
     }
 
     [HttpPatch("updateName")]
-    public async Task<IActionResult> UpdateName(
-        [FromBody] string name,
-        CancellationToken cancellationToken = default)
+    public Task<IActionResult> UpdateName([FromBody] string name, CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { name, cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var user = this.ContextAccessor.HttpContext?.User;
-        IActionResult result;
-
-        if (user?.Identity?.IsAuthenticated ?? false)
+        async Task<IActionResult> Action(ClaimsPrincipal user)
         {
-            var validationResult = await this.NameValidator.ValidateAsync(name, cancellationToken)
+            var sessionToken = await this.UserProvider.UpdateName(
+                new Authenticated<UpdateNameModel>(
+                    new UpdateNameModel() { Name = name },
+                    await this.GetSecurityToken().ConfigureAwait(false),
+                    user),
+                cancellationToken)
                 .ConfigureAwait(false);
 
-            if (validationResult.IsValid)
-            {
-                var sessionToken = await this.UserProvider.UpdateName(
-                    new Authenticated<UpdateNameModel>(
-                        new UpdateNameModel() { Name = name },
-                        await this.GetSecurityToken().ConfigureAwait(false),
-                        user),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                result = this.Ok(sessionToken);
-            }
-            else
-            {
-                result = this.ValidationProblem(validationResult);
-            }
-        }
-        else
-        {
-            result = this.Unauthorized();
+            return this.Ok(sessionToken);
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, result)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return result;
+        return this.AuthorizeAndExecuteAction(new { name, cancellationToken }, Action);
     }
 
     [HttpPatch("updateUserName")]
-    public async Task<IActionResult> UpdateUserName(
-        [FromBody] string userName,
-        CancellationToken cancellationToken = default)
+    public Task<IActionResult> UpdateUserName([FromBody] string userName, CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Property(LogProperties.Parameters, new { userName, cancellationToken })
-            .Message(LogMessages.EnteringMethod)
-            .Log();
-
-        var user = this.ContextAccessor.HttpContext?.User;
-        IActionResult result;
-
-        if (user?.Identity?.IsAuthenticated ?? false)
+        async Task<IActionResult> Action(ClaimsPrincipal user)
         {
-            var validationResult = await this.UserNameValidator.ValidateAsync(userName, cancellationToken)
+            var sessionToken = await this.UserProvider.UpdateUserName(
+                new Authenticated<UpdateUserNameModel>(
+                    new UpdateUserNameModel() { UserName = userName },
+                    await this.GetSecurityToken().ConfigureAwait(false),
+                    user),
+                cancellationToken)
                 .ConfigureAwait(false);
 
-            if (validationResult.IsValid)
-            {
-                var sessionToken = await this.UserProvider.UpdateUserName(
-                    new Authenticated<UpdateUserNameModel>(
-                        new UpdateUserNameModel() { UserName = userName },
-                        await this.GetSecurityToken().ConfigureAwait(false),
-                        user),
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                result = this.Ok(sessionToken);
-            }
-            else
-            {
-                result = this.ValidationProblem(validationResult);
-            }
-        }
-        else
-        {
-            result = this.Unauthorized();
+            return this.Ok(sessionToken);
         }
 
-        Log.ForTraceEvent()
-            .Property(LogProperties.ReturnValue, result)
-            .Message(LogMessages.ExitingMethod)
-            .Log();
-
-        return result;
-    }
-
-    private async Task<JwtSecurityToken> GetSecurityToken()
-    {
-        var context = this.ContextAccessor.HttpContext;
-        var token = context != null
-            ? await context.GetTokenAsync("access_token").ConfigureAwait(false)
-            : string.Empty;
-
-        return new JwtSecurityToken(token);
+        return this.AuthorizeAndExecuteAction(new { userName, cancellationToken }, Action);
     }
 }

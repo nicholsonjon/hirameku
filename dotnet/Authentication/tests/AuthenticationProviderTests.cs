@@ -27,12 +27,9 @@ using Hirameku.Email;
 using Hirameku.Recaptcha;
 using Hirameku.TestTools;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Moq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq.Expressions;
-using System.Security.Cryptography;
-using CommonUtilities = Hirameku.TestTools.TestUtilities;
 
 [TestClass]
 public class AuthenticationProviderTests
@@ -51,13 +48,12 @@ public class AuthenticationProviderTests
     private const string Pepper = TestData.Pepper;
     private const string RecaptchaResponse = nameof(RecaptchaResponse);
     private const string RemoteIP = "127.0.0.1";
-    private const string SecurityAlgorithm = SecurityAlgorithms.HmacSha512;
     private const string SerializedToken = TestData.SerializedToken;
     private const string Token = TestData.Token;
     private const string UserAgent = nameof(UserAgent);
     private const string UserId = "1234567890abcdef12345678";
     private const string UserName = nameof(UserName);
-    private static readonly string Hash = CommonUtilities.GetMD5HexString(
+    private static readonly string Hash = TestUtilities.GetMD5HexString(
         Accept,
         ContentEncoding,
         ContentLanguage,
@@ -65,11 +61,7 @@ public class AuthenticationProviderTests
         UserAgent);
 
     private static readonly DateTime ExpirationDate = DateTime.UtcNow + TimeSpan.FromDays(365);
-    private static readonly Uri Localhost = new("http://localhost");
     private static readonly TimeSpan MaxVerificationAge = TimeSpan.FromDays(1);
-    private static readonly DateTime Now = DateTime.UtcNow;
-    private static readonly TimeSpan TokenExpiry = TimeSpan.FromMinutes(30);
-    private static readonly string SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
@@ -582,18 +574,7 @@ public class AuthenticationProviderTests
 
     private static JwtSecurityToken GetJwtSecurityToken()
     {
-        var localhost = Localhost.ToString();
-
-        return TestUtilities.GetJwtSecurityToken(
-            localhost,
-            UserName,
-            UserId,
-            Name,
-            Now,
-            localhost,
-            TokenExpiry,
-            SecretKey,
-            SecurityAlgorithm);
+        return TestUtilities.GetJwtSecurityToken(UserName, UserId, Name);
     }
 
     private static Mock<IDocumentDao<AuthenticationEvent>> GetMockAuthenticationEventDao(
@@ -746,7 +727,7 @@ public class AuthenticationProviderTests
         var mockUserDao = new Mock<IDocumentDao<UserDocument>>();
         mockUserDao.Setup(m => m.Fetch(It.IsAny<Expression<Func<UserDocument, bool>>>(), cancellationToken))
             .Callback<Expression<Func<UserDocument, bool>>, CancellationToken>(
-                (f, ct) => CommonUtilities.AssertExpressionFilter(f, GetUser()))
+                (f, ct) => TestUtilities.AssertExpressionFilter(f, GetUser()))
             .ReturnsAsync(user)
             .Verifiable();
 
@@ -911,7 +892,7 @@ public class AuthenticationProviderTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
         var mockEmailer = new Mock<IEmailer>();
-        var verificationToken = await CommonUtilities.GenerateToken().ConfigureAwait(false);
+        var verificationToken = await TestUtilities.GenerateToken().ConfigureAwait(false);
         _ = mockEmailer.Setup(
             m => m.SendVerificationEmail(
                 verificationToken.EmailAddress,

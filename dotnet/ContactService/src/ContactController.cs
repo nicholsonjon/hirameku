@@ -17,14 +17,10 @@
 
 namespace Hirameku.ContactService;
 
-using FluentValidation;
-using Hirameku.Common;
-using Hirameku.Common.Properties;
 using Hirameku.Common.Service;
 using Hirameku.Contact;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using NLog;
 using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
 [ApiController]
@@ -32,36 +28,20 @@ using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class ContactController : HiramekuController
 {
-    private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
-    public ContactController(
-        IHttpContextAccessor contextAccessor,
-        IContactProvider provider,
-        IValidator<SendFeedbackModel> validator)
+    public ContactController(IHttpContextAccessor contextAccessor, IContactProvider provider)
         : base(contextAccessor)
     {
         this.Provider = provider ?? throw new ArgumentNullException(nameof(provider));
-        this.Validator = validator ?? throw new ArgumentNullException(nameof(validator));
     }
 
     private IContactProvider Provider { get; }
 
-    private IValidator<SendFeedbackModel> Validator { get; }
-
     [HttpPost("sendFeedback")]
-    public async Task<IActionResult> SendFeedback(
+    public Task<IActionResult> SendFeedback(
         [FromBody] SendFeedbackModel model,
         CancellationToken cancellationToken = default)
     {
-        Log.ForTraceEvent()
-            .Message(LogMessages.EnteringMethod)
-            .Property(LogProperties.Parameters, new { model, cancellationToken })
-            .Log();
-
-        var validationResult = await this.Validator.ValidateAsync(model, cancellationToken).ConfigureAwait(false);
-        IActionResult result;
-
-        if (validationResult.IsValid)
+        async Task<IActionResult> Action()
         {
             var context = this.ContextAccessor.HttpContext
                 ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
@@ -73,18 +53,9 @@ public class ContactController : HiramekuController
                 cancellationToken)
                 .ConfigureAwait(false);
 
-            result = this.Accepted();
-        }
-        else
-        {
-            result = this.ValidationProblem(validationResult);
+            return this.Accepted();
         }
 
-        Log.ForTraceEvent()
-            .Message(LogMessages.ExitingMethod)
-            .Property(LogProperties.ReturnValue, result)
-            .Log();
-
-        return result;
+        return this.ExecuteAction(new { model, cancellationToken }, Action);
     }
 }

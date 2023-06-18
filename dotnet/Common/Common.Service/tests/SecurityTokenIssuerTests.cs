@@ -64,18 +64,7 @@ public class SecurityTokenIssuerTests
 
     private static JwtSecurityToken GetJwtSecurityToken()
     {
-        var localhost = Localhost.ToString();
-
-        return TestUtilities.GetJwtSecurityToken(
-            localhost,
-            UserName,
-            UserId,
-            Name,
-            Now,
-            localhost,
-            TokenExpiry,
-            SecretKey,
-            SecurityAlgorithm);
+        return TestUtilities.GetJwtSecurityToken(UserName, UserId, Name);
     }
 
     private static Mock<IDateTimeProvider> GetMockDateTimeProvider()

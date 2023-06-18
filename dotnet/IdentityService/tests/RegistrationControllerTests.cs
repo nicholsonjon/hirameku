@@ -17,7 +17,7 @@
 
 namespace Hirameku.IdentityService.Tests;
 
-using Hirameku.Common;
+using FluentValidation;
 using Hirameku.Common.Service;
 using Hirameku.Registration;
 using Hirameku.TestTools;
@@ -31,7 +31,9 @@ using RegistrationPasswordValidationResult = Hirameku.Registration.PasswordValid
 [TestClass]
 public class RegistrationControllerTests
 {
+    private const string EmailAddress = nameof(EmailAddress);
     private const string Password = TestData.Password;
+    private const string RecaptchaResponse = nameof(RecaptchaResponse);
     private const string RemoteIP = "127.0.0.1";
     private const string SerializedToken = "U2VyaWFsaXplZFRva2Vu";
     private const string UserName = nameof(UserName);
@@ -49,9 +51,14 @@ public class RegistrationControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task RegistrationController_IsUserNameAvailable_BadRequest()
     {
-        var target = GetTarget();
+        var mockProvider = new Mock<IRegistrationProvider>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(m => m.IsUserNameAvailable(UserName, cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(mockProvider);
 
-        var result = await target.IsUserNameAvailable(string.Empty).ConfigureAwait(false);
+        var result = await target.IsUserNameAvailable(UserName, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -79,10 +86,10 @@ public class RegistrationControllerTests
     {
         var model = new RegisterModel()
         {
-            EmailAddress = "test@test.local",
+            EmailAddress = EmailAddress,
             Name = nameof(RegisterModel.Name),
             Password = Password,
-            RecaptchaResponse = nameof(RegisterModel.RecaptchaResponse),
+            RecaptchaResponse = RecaptchaResponse,
             UserName = nameof(RegisterModel.UserName),
         };
         using var cancellationTokenSource = new CancellationTokenSource();
@@ -102,9 +109,16 @@ public class RegistrationControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task RegistrationController_Register_BadRequest()
     {
-        var target = GetTarget();
+        var mockProvider = new Mock<IRegistrationProvider>();
+        var model = new RegisterModel();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(
+            m => m.Register(model, nameof(RegistrationController.Register), RemoteIP, cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(mockProvider);
 
-        var result = await target.Register(new RegisterModel()).ConfigureAwait(false);
+        var result = await target.Register(model, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -113,9 +127,14 @@ public class RegistrationControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task RegistrationController_RejectRegistration_BadRequest()
     {
-        var target = GetTarget();
+        var mockProvider = new Mock<IRegistrationProvider>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(m => m.RejectRegistration(SerializedToken, cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(mockProvider);
 
-        var result = await target.RejectRegistration(string.Empty).ConfigureAwait(false);
+        var result = await target.RejectRegistration(SerializedToken, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -140,9 +159,20 @@ public class RegistrationControllerTests
     [TestCategory(TestCategories.Unit)]
     public async Task RegistrationController_ResendVerificationEmail_BadRequest()
     {
-        var target = GetTarget();
+        var mockProvider = new Mock<IRegistrationProvider>();
+        var model = new ResendVerificationEmailModel();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(
+            m => m.ResendVerificationEmail(
+                model,
+                nameof(RegistrationController.ResendVerificationEmail),
+                RemoteIP,
+                cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(mockProvider);
 
-        var result = await target.ResendVerificationEmail(new ResendVerificationEmailModel()).ConfigureAwait(false);
+        var result = await target.ResendVerificationEmail(model, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -153,8 +183,8 @@ public class RegistrationControllerTests
     {
         var model = new ResendVerificationEmailModel()
         {
-            EmailAddress = "test@test.local",
-            RecaptchaResponse = nameof(RegisterModel.RecaptchaResponse),
+            EmailAddress = EmailAddress,
+            RecaptchaResponse = RecaptchaResponse,
         };
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
@@ -188,16 +218,21 @@ public class RegistrationControllerTests
 
         var actual = await target.ValidatePassword(Password, cancellationToken).ConfigureAwait(false);
 
-        Assert.AreEqual(expected, actual.Value);
+        Assert.AreEqual(expected, (actual as OkObjectResult)?.Value);
     }
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     public async Task RegistrationController_VerifyEmailAddress_BadRequest()
     {
-        var target = GetTarget();
+        var mockProvider = new Mock<IRegistrationProvider>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(m => m.VerifyEmaiAddress(SerializedToken, cancellationToken))
+            .ThrowsAsync(new ValidationException("error"));
+        var target = GetTarget(mockProvider);
 
-        var result = await target.VerifyEmailAddress(string.Empty).ConfigureAwait(false);
+        var result = await target.VerifyEmailAddress(SerializedToken, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -232,10 +267,6 @@ public class RegistrationControllerTests
 
         return new RegistrationController(
             mockContextAccessor.Object,
-            new Base64StringValidator(),
-            new RegisterModelValidator(mockPasswordValidator.Object),
-            mockRegistrationProvider?.Object ?? Mock.Of<IRegistrationProvider>(),
-            new ResendVerificationEmailModelValidator(),
-            new UserNameValidator());
+            mockRegistrationProvider?.Object ?? Mock.Of<IRegistrationProvider>());
     }
 }

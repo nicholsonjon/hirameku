@@ -17,14 +17,17 @@
 
 namespace Hirameku.Common.Service;
 
-using FluentValidation.Results;
+using FluentValidation;
 using Hirameku.Common.Properties;
 using Hirameku.Common.Service.Properties;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Security.Claims;
 using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
 public abstract class HiramekuController : ControllerBase
@@ -67,6 +70,73 @@ public abstract class HiramekuController : ControllerBase
         return Task.FromResult((IActionResult)result);
     }
 
+    protected virtual Task<IActionResult> AuthorizeAndExecuteAction<TParameters>(
+        TParameters parameters,
+        Func<ClaimsPrincipal, Task<IActionResult>> action)
+    {
+        async Task<IActionResult> Action()
+        {
+            var user = this.ContextAccessor.HttpContext?.User;
+            IActionResult result;
+
+            if (user?.Identity?.IsAuthenticated ?? false)
+            {
+                result = await action(user).ConfigureAwait(false);
+            }
+            else
+            {
+                result = this.Unauthorized();
+            }
+
+            return result;
+        }
+
+        return this.ExecuteAction(parameters, Action);
+    }
+
+    protected virtual async Task<IActionResult> ExecuteAction<TParameters>(
+        TParameters parameters,
+        Func<Task<IActionResult>> action)
+    {
+        Log.ForTraceEvent()
+            .Message(LogMessages.EnteringMethod)
+            .Property(LogProperties.Parameters, parameters)
+            .Log();
+
+        if (action == null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
+
+        IActionResult result;
+
+        try
+        {
+            result = await action().ConfigureAwait(false);
+        }
+        catch (ValidationException ex)
+        {
+            result = this.ValidationProblem(ex);
+        }
+
+        Log.ForTraceEvent()
+            .Message(LogMessages.ExitingMethod)
+            .Property(LogProperties.ReturnValue, result)
+            .Log();
+
+        return result;
+    }
+
+    protected async Task<JwtSecurityToken> GetSecurityToken()
+    {
+        var context = this.ContextAccessor.HttpContext;
+        var token = context != null
+            ? await context.GetTokenAsync("access_token").ConfigureAwait(false)
+            : string.Empty;
+
+        return new JwtSecurityToken(token);
+    }
+
     protected virtual ObjectResult Problem(Exception? exception)
     {
         Log.ForTraceEvent()
@@ -90,28 +160,5 @@ public abstract class HiramekuController : ControllerBase
             .Log();
 
         return result;
-    }
-
-    protected IActionResult ValidationProblem(ValidationResult validationResult)
-    {
-        if (validationResult == null)
-        {
-            throw new ArgumentNullException(nameof(validationResult));
-        }
-
-        var problem = new ValidationProblemDetails()
-        {
-            Detail = Resources.RequestValidationDetail,
-            Instance = ErrorCodes.RequestValidationFailed,
-            Status = (int)HttpStatusCode.BadRequest,
-            Title = Resources.RequestValidationFailed,
-        };
-
-        foreach (var property in validationResult.Errors.GroupBy(vf => vf.PropertyName))
-        {
-            problem.Errors.Add(property.Key, property.Select(vf => vf.ErrorMessage).ToArray());
-        }
-
-        return this.ValidationProblem(problem);
     }
 }

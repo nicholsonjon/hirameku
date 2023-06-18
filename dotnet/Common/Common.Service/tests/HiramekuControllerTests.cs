@@ -17,16 +17,17 @@
 
 namespace Hirameku.Common.Service.Tests;
 
-using AutoMapper;
-using FluentValidation.Results;
 using Hirameku.Common.Service.Properties;
+using Hirameku.TestTools;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Reflection;
+using System.Security.Claims;
 
 [TestClass]
 public class HiramekuControllerTests
@@ -42,6 +43,21 @@ public class HiramekuControllerTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
+    public Task HiramekuController_AuthorizeAndExecuteAction()
+    {
+        return RunAuthorizeAndExecuteActionTest<OkResult>(
+            TestUtilities.GetMockContextAccessor(TestUtilities.GetJwtSecurityToken(), TestUtilities.GetUser()));
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public Task HiramekuController_AuthorizeAndExecuteAction_Unauthorized()
+    {
+        return RunAuthorizeAndExecuteActionTest<UnauthorizedResult>();
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
     public async Task HiramekuController_Error()
     {
         var target = GetTarget(GetMockContextAccessor());
@@ -50,9 +66,8 @@ public class HiramekuControllerTests
 
         var result = actionResult as ObjectResult;
         var problemDetails = result?.Value as ProblemDetails;
-        var statusCode = (int)HttpStatusCode.InternalServerError;
         Assert.IsTrue(result?.ContentTypes.Contains(MediaTypes.ProblemDetails) ?? false);
-        Assert.AreEqual(result!.StatusCode, statusCode);
+        Assert.AreEqual(result!.StatusCode, (int)HttpStatusCode.InternalServerError);
         Assert.IsNotNull(problemDetails);
         Assert.IsNull(problemDetails!.Detail);
         Assert.AreEqual(ErrorCodes.UnexpectedError, problemDetails.Instance);
@@ -76,51 +91,71 @@ public class HiramekuControllerTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    public void HiramekuController_ValidationProblem()
+    public async Task HiramekuController_ExecuteAction()
     {
         var target = GetTarget();
-        const string PropertyName = nameof(PropertyName);
-        const string ErrorMessage = nameof(ErrorMessage);
-        var validationResult = new ValidationResult(new ValidationFailure[]
-        {
-            new ValidationFailure(PropertyName, ErrorMessage),
-        });
-
         var controllerType = typeof(TestHiramekuController);
-        var methodInfo = controllerType.GetMethod(
-            nameof(HiramekuController.ValidationProblem),
-            BindingFlags.NonPublic | BindingFlags.Instance,
-            new Type[] { typeof(ValidationResult) });
+        var methodInfo = controllerType.GetMethod("ExecuteAction", BindingFlags.NonPublic | BindingFlags.Instance);
+        var genericMethod = methodInfo?.MakeGenericMethod(typeof(object));
 
-        Assert.IsNotNull(methodInfo);
+        Assert.IsNotNull(genericMethod);
 
-        var result = methodInfo.Invoke(target, new object[] { validationResult }) as BadRequestObjectResult;
-        var problemDetails = result?.Value as ValidationProblemDetails;
-        const int BadRequest = (int)HttpStatusCode.BadRequest;
+        Func<Task<IActionResult>> action = () => Task.FromResult(new OkResult() as IActionResult);
+        var task = genericMethod.Invoke(target, new object[] { new object(), action }) as Task<IActionResult>;
 
-        Assert.IsNotNull(problemDetails);
-        Assert.AreEqual(BadRequest, result!.StatusCode);
-        Assert.AreEqual(Resources.RequestValidationDetail, problemDetails.Detail);
-        Assert.AreEqual(ErrorCodes.RequestValidationFailed, problemDetails.Instance);
-        Assert.AreEqual(BadRequest, problemDetails.Status);
-        Assert.AreEqual(Resources.RequestValidationFailed, problemDetails.Title);
+        Assert.IsNotNull(task);
 
-        var error = problemDetails.Errors.Single();
+        var result = await task.ConfigureAwait(false);
 
-        Assert.AreEqual(PropertyName, error.Key);
-        Assert.AreEqual(ErrorMessage, error.Value.Single());
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType<OkResult>(result);
     }
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     [ExpectedException(typeof(ArgumentNullException))]
-    public void HiramekuController_ValidationProblem_ValidationResult_Null_Throws()
+    public async Task HiramekuController_ExecuteAction_ActionIsNull_Throws()
     {
         var target = GetTarget();
+        var controllerType = typeof(TestHiramekuController);
+        var methodInfo = controllerType.GetMethod("ExecuteAction", BindingFlags.NonPublic | BindingFlags.Instance);
+        var genericMethod = methodInfo?.MakeGenericMethod(typeof(object));
 
-        _ = target.ValidationProblem((null as ValidationProblemDetails)!);
+        Assert.IsNotNull(genericMethod);
 
-        Assert.Fail(nameof(ArgumentNullException) + " expected");
+        try
+        {
+            var task = genericMethod.Invoke(target, new object[] { new object(), null! }) as Task;
+
+            await task!.ConfigureAwait(false);
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException != null)
+        {
+            throw ex.InnerException;
+        }
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public async Task HiramekuController_GetSecurityToken()
+    {
+        const string UserName = nameof(UserName);
+        const string UserId = nameof(UserId);
+        const string Name = nameof(Name);
+        var expected = TestUtilities.GetJwtSecurityToken(UserName, UserId, Name);
+        var target = GetTarget(TestUtilities.GetMockContextAccessor(expected));
+        var controllerType = typeof(TestHiramekuController);
+        var methodInfo = controllerType.GetMethod("GetSecurityToken", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        Assert.IsNotNull(methodInfo);
+
+        var task = methodInfo.Invoke(target, Array.Empty<object>()) as Task<JwtSecurityToken>;
+
+        Assert.IsNotNull(task);
+
+        var actual = await task.ConfigureAwait(false);
+
+        Assert.AreEqual(expected.RawData, actual.RawData);
     }
 
     private static Mock<IHttpContextAccessor> GetMockContextAccessor(Exception? error = default)
@@ -137,17 +172,32 @@ public class HiramekuControllerTests
         return mockAccessor;
     }
 
-    private static Mock<IMapper> GetMockMapper(Exception exception, ProblemDetails problemDetails)
-    {
-        var mockMapper = new Mock<IMapper>();
-        _ = mockMapper.Setup(m => m.Map<ProblemDetails>(exception))
-            .Returns(problemDetails);
-
-        return mockMapper;
-    }
-
     private static HiramekuController GetTarget(Mock<IHttpContextAccessor>? mockContextAccessor = default)
     {
         return new TestHiramekuController(mockContextAccessor?.Object ?? Mock.Of<IHttpContextAccessor>());
+    }
+
+    private static async Task RunAuthorizeAndExecuteActionTest<TResult>(
+        Mock<IHttpContextAccessor>? mockContextAccessor = default)
+        where TResult : class, IActionResult
+    {
+        var target = GetTarget(mockContextAccessor);
+        var controllerType = typeof(TestHiramekuController);
+        var methodInfo = controllerType.GetMethod(
+            "AuthorizeAndExecuteAction",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        var genericMethod = methodInfo?.MakeGenericMethod(typeof(object));
+
+        Assert.IsNotNull(genericMethod);
+
+        Func<ClaimsPrincipal, Task<IActionResult>> action = _ => Task.FromResult(new OkResult() as IActionResult);
+        var task = genericMethod.Invoke(target, new object[] { new object(), action }) as Task<IActionResult>;
+
+        Assert.IsNotNull(task);
+
+        var result = await task.ConfigureAwait(false);
+
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType<TResult>(result);
     }
 }

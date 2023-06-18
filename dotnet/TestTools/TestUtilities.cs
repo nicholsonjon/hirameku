@@ -16,22 +16,37 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace Hirameku.TestTools;
-
 using Hirameku.Common.Service;
 using Hirameku.Data;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using Moq;
 using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text;
 
 public static class TestUtilities
 {
+    private const string AccessTokenName = ".Token.access_token";
+    private const string Name = nameof(Name);
+    private const string SecurityAlgorithm = SecurityAlgorithms.HmacSha512;
+    private const string UserId = nameof(UserId);
+    private const string UserName = nameof(UserName);
+    private static readonly Uri Localhost = new("http://localhost");
+    private static readonly DateTime Now = DateTime.UtcNow;
+    private static readonly TimeSpan TokenExpiry = TimeSpan.FromMinutes(30);
+    private static readonly string SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
+
     public static void AssertExpressionFilter<TDocument>(FilterDefinition<TDocument> filter, TDocument document)
     {
         if (filter == null)
@@ -171,39 +186,33 @@ public static class TestUtilities
     }
 
     public static JwtSecurityToken GetJwtSecurityToken(
-        string audience,
-        string userName,
-        string userId,
-        string name,
-        DateTime now,
-        string issuer,
-        TimeSpan tokenExpiry,
-        string secretKey,
-        string securityAlgorithm)
+        string userName = UserName,
+        string userId = UserId,
+        string name = Name)
     {
+        var localhost = Localhost.ToString();
         var signingCredentials = new SigningCredentials(
-            new SymmetricSecurityKey(Convert.FromBase64String(secretKey)),
-            securityAlgorithm);
+            new SymmetricSecurityKey(Convert.FromBase64String(SecretKey)),
+            SecurityAlgorithm);
         var descriptor = new SecurityTokenDescriptor
         {
-            Audience = audience,
+            Audience = localhost,
             Claims = new Dictionary<string, object>()
             {
                 { JwtRegisteredClaimNames.Name, name },
                 { JwtRegisteredClaimNames.Sub, userName },
                 { PrivateClaims.UserId, userId },
             },
-            Expires = now + tokenExpiry,
-            IssuedAt = now,
-            Issuer = issuer,
-            NotBefore = now,
+            Expires = Now + TokenExpiry,
+            IssuedAt = Now,
+            Issuer = localhost,
+            NotBefore = Now,
             SigningCredentials = signingCredentials,
         };
 
         var handler = new JwtSecurityTokenHandler();
-        var token = handler.CreateJwtSecurityToken(descriptor);
 
-        return token;
+        return handler.CreateJwtSecurityToken(descriptor);
     }
 
     [SuppressMessage("Security", "CA5351:Do Not Use Broken Cryptographic Algorithms", Justification = "MD5 is employed here to generate a unique key that is not used for any security-critical purposes")]
@@ -213,6 +222,46 @@ public static class TestUtilities
         (strings ?? Enumerable.Empty<string>()).ToList().ForEach(s => builder.Append(s));
 
         return Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(builder.ToString())));
+    }
+
+    public static Mock<IHttpContextAccessor> GetMockContextAccessor(
+        JwtSecurityToken? securityToken = default,
+        ClaimsPrincipal? user = default)
+    {
+        var authenticationTicket = new AuthenticationTicket(
+            new GenericPrincipal(Mock.Of<IIdentity>(), default),
+            new AuthenticationProperties(new Dictionary<string, string?>()
+            {
+                { AccessTokenName, securityToken?.RawData },
+            }),
+            JwtBearerDefaults.AuthenticationScheme);
+        var mockAuthenticationService = new Mock<IAuthenticationService>();
+        var context = new DefaultHttpContext();
+        _ = mockAuthenticationService.Setup(m => m.AuthenticateAsync(context, default))
+            .ReturnsAsync(AuthenticateResult.Success(authenticationTicket));
+        var mockRequestServices = new Mock<IServiceProvider>();
+        _ = mockRequestServices.Setup(m => m.GetService(typeof(IAuthenticationService)))
+            .Returns(mockAuthenticationService.Object);
+
+        context.RequestServices = mockRequestServices.Object;
+
+        if (user != null)
+        {
+            context.User = user;
+        }
+
+        var mockAccessor = new Mock<IHttpContextAccessor>();
+        _ = mockAccessor.Setup(m => m.HttpContext)
+            .Returns(context);
+
+        return mockAccessor;
+    }
+
+    public static ClaimsPrincipal GetUser(string userId = UserId)
+    {
+        var identity = new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, userId) }, "JwtBearer");
+
+        return new ClaimsPrincipal(identity);
     }
 
     public static bool IsUpdateFor<TDocument, TValue>(UpdateDefinition<TDocument> update, string updatedFieldName)
