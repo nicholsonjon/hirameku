@@ -37,15 +37,15 @@ using System.Text;
 
 public static class TestUtilities
 {
+    public const string Name = nameof(Name);
+    public const string SecurityAlgorithm = SecurityAlgorithms.HmacSha512;
+    public const string UserId = nameof(UserId);
+    public const string UserName = nameof(UserName);
+    public static readonly Uri Localhost = new("http://localhost");
+    public static readonly DateTime Now = DateTime.UtcNow;
+    public static readonly TimeSpan TokenExpiry = TimeSpan.FromMinutes(30);
+    public static readonly string SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
     private const string AccessTokenName = ".Token.access_token";
-    private const string Name = nameof(Name);
-    private const string SecurityAlgorithm = SecurityAlgorithms.HmacSha512;
-    private const string UserId = nameof(UserId);
-    private const string UserName = nameof(UserName);
-    private static readonly Uri Localhost = new("http://localhost");
-    private static readonly DateTime Now = DateTime.UtcNow;
-    private static readonly TimeSpan TokenExpiry = TimeSpan.FromMinutes(30);
-    private static readonly string SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
 
     public static void AssertExpressionFilter<TDocument>(FilterDefinition<TDocument> filter, TDocument document)
     {
@@ -101,8 +101,13 @@ public static class TestUtilities
             throw new ArgumentNullException(nameof(projection));
         }
 
-        Assert.IsInstanceOfType(projection, typeof(FindExpressionProjectionDefinition<TDocument, TValue>));
-        var expression = ((FindExpressionProjectionDefinition<TDocument, TValue>)projection).Expression.Compile();
+        var type = projection.GetType();
+        var propertyValue = type?.GetProperty("Expression")?.GetValue(projection, null)
+            as Expression<Func<TDocument, TValue>>;
+
+        Assert.IsNotNull(propertyValue);
+
+        var expression = propertyValue.Compile();
         Assert.AreEqual(expression(document), value);
     }
 

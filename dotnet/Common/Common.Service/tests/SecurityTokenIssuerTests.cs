@@ -19,22 +19,11 @@ namespace Hirameku.Common.Service.Tests;
 
 using Hirameku.TestTools;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using Moq;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Cryptography;
 
 [TestClass]
 public class SecurityTokenIssuerTests
 {
-    public const string Name = nameof(Name);
-    public const string UserId = nameof(UserId);
-    public const string UserName = nameof(UserName);
-    public const string SecurityAlgorithm = SecurityAlgorithms.HmacSha512;
-    public static readonly Uri Localhost = new("http://localhost");
-    public static readonly DateTime Now = DateTime.UtcNow;
-    public static readonly string SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
-    public static readonly TimeSpan TokenExpiry = TimeSpan.FromMinutes(30);
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
@@ -52,41 +41,37 @@ public class SecurityTokenIssuerTests
         var target = GetTarget();
 
         var token = target.Issue(
-            UserId,
+            TestUtilities.UserId,
             new User()
             {
-                Name = Name,
-                UserName = UserName,
+                Name = TestUtilities.Name,
+                UserName = TestUtilities.UserName,
             });
 
-        Assert.AreEqual(GetJwtSecurityToken().ToString(), token.ToString());
-    }
-
-    private static JwtSecurityToken GetJwtSecurityToken()
-    {
-        return TestUtilities.GetJwtSecurityToken(UserName, UserId, Name);
+        Assert.AreEqual(TestUtilities.GetJwtSecurityToken().ToString(), token.ToString());
     }
 
     private static Mock<IDateTimeProvider> GetMockDateTimeProvider()
     {
         var mockProvider = new Mock<IDateTimeProvider>();
         _ = mockProvider.Setup(m => m.UtcNow)
-            .Returns(Now);
+            .Returns(TestUtilities.Now);
 
         return mockProvider;
     }
 
     private static Mock<IOptions<SecurityTokenOptions>> GetMockOptions()
     {
+        var localhost = TestUtilities.Localhost;
         var mockOptions = new Mock<IOptions<SecurityTokenOptions>>();
         _ = mockOptions.Setup(m => m.Value)
             .Returns(new SecurityTokenOptions()
             {
-                Audience = Localhost,
-                Issuer = Localhost,
-                SecretKey = SecretKey,
-                SecurityAlgorithm = SecurityAlgorithm,
-                TokenExpiry = TokenExpiry,
+                Audience = TestUtilities.Localhost,
+                Issuer = TestUtilities.Localhost,
+                SecretKey = TestUtilities.SecretKey,
+                SecurityAlgorithm = TestUtilities.SecurityAlgorithm,
+                TokenExpiry = TestUtilities.TokenExpiry,
             });
 
         return mockOptions;
