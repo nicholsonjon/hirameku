@@ -54,7 +54,6 @@ services:
     container_name: client
     environment:
       - PORT=80
-      - YARN_VERSION=3.6.0
     image: ${DOCKER_REGISTRY-}hirameku/client
     networks:
       - frontend
