@@ -21,11 +21,11 @@ public static class Regexes
 {
     public const string Base64String = @"^(?:[0-9A-Za-z+/]{4})*(?:[0-9A-Za-z+/]{2}==|[0-9A-Za-z+/]{3}=)?$";
     public const string Digits = @"[0-9]+";
-    public const string EmailAddress = @"^[0-9A-Za-z.!#$%&'*+\/=?^_`{|}~-]+@(?!-)(?:(?:[a-zA-Z0-9][a-zA-Z0-9\-]{0,61})?[a-zA-Z0-9]\.){1,126}(?!0-9+)[a-zA-Z0-9]{2,63}$";
+    public const string EmailAddress = @"^[0-9A-Za-z.!#$%&'*+\/=?^_`{|}~\-]+@(?!-)(?:(?:[a-zA-Z0-9][a-zA-Z0-9\-]{0,61})?[a-zA-Z0-9]\.){1,126}(?!0-9+)[a-zA-Z0-9]{2,63}$";
     public const string EntirelyWhiteSpace = @"^\s+$";
     public const string HtmlTag = @"<[^>]+>";
     public const string LowerCaseLetters = @"[a-z]+";
-    public const string Name = @"\p{L}+(?:\s*\p{L}+){1,40}";
+    public const string Name = @"^\p{L}+(?:\s*\p{L}+){1,40}$";
     public const string NonAsciiCharacters = @"[^\u0000-\u007F]+";
     public const string ObjectId = @"^[0-9a-f]{24}$";
     public const string Punctuation = @"[ !""'(),\-./:;?`]+";
