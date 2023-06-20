@@ -17,6 +17,7 @@
 
 namespace Hirameku.Authentication.Tests;
 
+using Bogus;
 using FluentValidation.TestHelper;
 using Hirameku.Common.Service;
 using Hirameku.TestTools;
@@ -48,21 +49,36 @@ public class ResetPasswordModelValidatorTests
         var mockPasswordValidator = GetMockPasswordValidator(passwordResult);
         var target = GetTarget(mockPasswordValidator);
 
-        var result = await target.TestValidateAsync(GetModel()).ConfigureAwait(false);
+        var result = await target.TestValidateAsync(GetValidModel()).ConfigureAwait(false);
 
         _ = result.ShouldHaveValidationErrorFor(m => m.Password).Only();
     }
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    [DataRow(null, DisplayName = nameof(ResetPasswordModelValidator_RecaptchaResponse) + "(null)")]
-    [DataRow("", DisplayName = nameof(ResetPasswordModelValidator_RecaptchaResponse) + "(string.Empty)")]
-    [DataRow(" \t\r\n", DisplayName = nameof(ResetPasswordModelValidator_RecaptchaResponse) + "(WhiteSpace)")]
-    public async Task ResetPasswordModelValidator_RecaptchaResponse(string recaptchaResponse)
+    [DataRow(null, DisplayName = nameof(ResetPasswordModelValidator_RecaptchaResponse_NullEmptyOrWhiteSpace) + "(null)")]
+    [DataRow("", DisplayName = nameof(ResetPasswordModelValidator_RecaptchaResponse_NullEmptyOrWhiteSpace) + "(string.Empty)")]
+    [DataRow(" \t\r\n", DisplayName = nameof(ResetPasswordModelValidator_RecaptchaResponse_NullEmptyOrWhiteSpace) + "(WhiteSpace)")]
+    public async Task ResetPasswordModelValidator_RecaptchaResponse_NullEmptyOrWhiteSpace(string recaptchaResponse)
     {
         var target = GetTarget();
-        var model = GetModel();
+        var model = GetValidModel();
         model.RecaptchaResponse = recaptchaResponse;
+
+        var result = await target.TestValidateAsync(model).ConfigureAwait(false);
+
+        _ = result.ShouldHaveValidationErrorFor(m => m.RecaptchaResponse).Only();
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public async Task ResetPasswordModelValidator_RecaptchaResponse_TooLong()
+    {
+        var target = GetTarget();
+        var model = GetValidModel();
+        var random = new Faker().Random;
+        const int Length = Constants.InvalidLongLength;
+        model.RecaptchaResponse = random.String(Length, Length);
 
         var result = await target.TestValidateAsync(model).ConfigureAwait(false);
 
@@ -77,7 +93,7 @@ public class ResetPasswordModelValidatorTests
     public async Task ResetPasswordModelValidator_SerializedToken_NullEmptyOrWhiteSpace(string serializedToken)
     {
         var target = GetTarget();
-        var model = GetModel();
+        var model = GetValidModel();
         model.SerializedToken = serializedToken;
 
         var result = await target.TestValidateAsync(model).ConfigureAwait(false);
@@ -90,7 +106,7 @@ public class ResetPasswordModelValidatorTests
     public async Task ResetPasswordModelValidator_SerializedToken_PatternIsInvalid()
     {
         var target = GetTarget();
-        var model = GetModel();
+        var model = GetValidModel();
         model.SerializedToken = "!@#$";
 
         var result = await target.TestValidateAsync(model).ConfigureAwait(false);
@@ -104,7 +120,7 @@ public class ResetPasswordModelValidatorTests
     {
         var target = GetTarget();
 
-        var result = await target.TestValidateAsync(GetModel()).ConfigureAwait(false);
+        var result = await target.TestValidateAsync(GetValidModel()).ConfigureAwait(false);
 
         result.ShouldNotHaveAnyValidationErrors();
     }
@@ -119,7 +135,7 @@ public class ResetPasswordModelValidatorTests
         return mockPasswordValidator;
     }
 
-    private static ResetPasswordModel GetModel()
+    private static ResetPasswordModel GetValidModel()
     {
         return new ResetPasswordModel()
         {

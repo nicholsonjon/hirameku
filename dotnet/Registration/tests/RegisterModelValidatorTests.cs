@@ -169,7 +169,8 @@ public class RegisterModelValidatorTests
         var target = GetTarget();
         var model = GetModel();
         var random = new Faker().Random;
-        model.RecaptchaResponse = random.Utf16String(Constants.InvalidShortLength, Constants.InvalidLongLength);
+        const int Length = Constants.InvalidLongLength;
+        model.RecaptchaResponse = random.String(Length, Length);
 
         var result = await target.TestValidateAsync(model).ConfigureAwait(false);
 

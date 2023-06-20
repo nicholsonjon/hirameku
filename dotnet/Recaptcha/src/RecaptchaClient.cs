@@ -24,9 +24,7 @@ using NLog;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Net.Mime;
 using System.Text.Json;
 using System.Threading;
 using RecaptchaExceptions = Hirameku.Recaptcha.Properties.Exceptions;
@@ -100,15 +98,7 @@ public class RecaptchaClient : IRecaptchaClient
         var errorCodes = response.ErrorCodes ?? Enumerable.Empty<string>();
         var options = this.Options.Value;
 
-        if (!string.Equals(response.Hostname, options.ExpectedHostname, StringComparison.OrdinalIgnoreCase))
-        {
-            result = RecaptchaVerificationResult.InvalidHost;
-        }
-        else if (!string.Equals(action, response.Action, StringComparison.OrdinalIgnoreCase))
-        {
-            result = RecaptchaVerificationResult.InvalidAction;
-        }
-        else if (errorCodes.Any())
+        if (errorCodes.Any())
         {
             var unexpectedErrorCodes = errorCodes.Intersect(UnexpectedErrorCodes);
 
@@ -126,6 +116,14 @@ public class RecaptchaClient : IRecaptchaClient
                 result = RecaptchaVerificationResult.NotVerified;
             }
         }
+        else if (!string.Equals(response.Hostname, options.ExpectedHostname, StringComparison.OrdinalIgnoreCase))
+        {
+            result = RecaptchaVerificationResult.InvalidHost;
+        }
+        else if (!string.Equals(action, response.Action, StringComparison.OrdinalIgnoreCase))
+        {
+            result = RecaptchaVerificationResult.InvalidAction;
+        }
         else
         {
             result = response.Success && options.MinimumScore <= response.Score
@@ -142,20 +140,20 @@ public class RecaptchaClient : IRecaptchaClient
         CancellationToken cancellationToken)
     {
         var options = this.Options.Value;
-        var recaptchaRequest = new RecaptchaRequest()
-        {
-            RemoteIP = remoteIP,
-            Response = responseToken,
-            Secret = options.SiteSecret,
-        };
+        var siteSecret = options.SiteSecret;
 
         Log.ForDebugEvent()
-            .Property(LogProperties.Data, recaptchaRequest)
+            .Property(LogProperties.Data, new { remoteIP, responseToken, siteSecret })
             .Message("reCAPTCHA API request")
             .Log();
 
-        var mediaType = new MediaTypeHeaderValue(MediaTypeNames.Application.Json);
-        using var requestContent = JsonContent.Create(recaptchaRequest, mediaType, JsonSerializerOptions.Value);
+        var parameters = new Dictionary<string, string>()
+        {
+            { "remoteip", remoteIP },
+            { "response", responseToken },
+            { "secret", siteSecret },
+        };
+        using var requestContent = new FormUrlEncodedContent(parameters);
         using var response = await this.Client.PostAsync(options.VerificationUrl, requestContent, cancellationToken)
             .ConfigureAwait(false);
         var responseContent = response?.Content;

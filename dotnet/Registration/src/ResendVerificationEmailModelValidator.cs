@@ -29,6 +29,6 @@ public class ResendVerificationEmailModelValidator : AbstractValidator<ResendVer
             .MaximumLength(Constants.MaxStringLengthShort);
         _ = this.RuleFor(m => m.RecaptchaResponse)
             .NotEmpty()
-            .MaximumLength(Constants.MaxStringLengthShort);
+            .MaximumLength(Constants.MaxStringLengthLong);
     }
 }

@@ -35,7 +35,7 @@ public class RegisterModelValidator : AbstractValidator<RegisterModel>
             .CustomAsync(passwordValidator.ValidateAsync);
         _ = this.RuleFor(m => m.RecaptchaResponse)
             .NotEmpty()
-            .MaximumLength(Constants.MaxStringLengthShort);
+            .MaximumLength(Constants.MaxStringLengthLong);
         _ = this.RuleFor(u => u.UserName)
             .Matches(Regexes.UserName);
     }

@@ -17,7 +17,9 @@
 
 namespace Hirameku.Authentication.Tests;
 
+using Bogus;
 using FluentValidation.TestHelper;
+using Hirameku.TestTools;
 
 [TestClass]
 public class SendPasswordResetModelValidatorTests
@@ -33,10 +35,10 @@ public class SendPasswordResetModelValidatorTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    [DataRow(null, DisplayName = nameof(SendPasswordResetModelValidator_RecaptchaResponse) + "(null)")]
-    [DataRow("", DisplayName = nameof(SendPasswordResetModelValidator_RecaptchaResponse) + "(string.Empty)")]
-    [DataRow(" \t\r\n", DisplayName = nameof(SendPasswordResetModelValidator_RecaptchaResponse) + "(WhiteSpace)")]
-    public async Task SendPasswordResetModelValidator_RecaptchaResponse(string recaptchaResponse)
+    [DataRow(null, DisplayName = nameof(SendPasswordResetModelValidator_RecaptchaResponse_NullEmptyOrWhiteSpace) + "(null)")]
+    [DataRow("", DisplayName = nameof(SendPasswordResetModelValidator_RecaptchaResponse_NullEmptyOrWhiteSpace) + "(string.Empty)")]
+    [DataRow(" \t\r\n", DisplayName = nameof(SendPasswordResetModelValidator_RecaptchaResponse_NullEmptyOrWhiteSpace) + "(WhiteSpace)")]
+    public async Task SendPasswordResetModelValidator_RecaptchaResponse_NullEmptyOrWhiteSpace(string recaptchaResponse)
     {
         var target = new SendPasswordResetModelValidator();
         var model = GetValidModel();
@@ -44,6 +46,21 @@ public class SendPasswordResetModelValidatorTests
 
         var result = await target.TestValidateAsync(model)
             .ConfigureAwait(false);
+
+        _ = result.ShouldHaveValidationErrorFor(m => m.RecaptchaResponse).Only();
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public async Task ResetPasswordModelValidator_RecaptchaResponse_TooLong()
+    {
+        var target = new SendPasswordResetModelValidator();
+        var model = GetValidModel();
+        var random = new Faker().Random;
+        const int Length = Constants.InvalidLongLength;
+        model.RecaptchaResponse = random.String(Length, Length);
+
+        var result = await target.TestValidateAsync(model).ConfigureAwait(false);
 
         _ = result.ShouldHaveValidationErrorFor(m => m.RecaptchaResponse).Only();
     }
@@ -61,6 +78,21 @@ public class SendPasswordResetModelValidatorTests
 
         var result = await target.TestValidateAsync(model)
             .ConfigureAwait(false);
+
+        _ = result.ShouldHaveValidationErrorFor(m => m.UserName).Only();
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public async Task ResetPasswordModelValidator_UserName_TooLong()
+    {
+        var target = new SendPasswordResetModelValidator();
+        var model = GetValidModel();
+        var random = new Faker().Random;
+        const int Length = Constants.InvalidShortLength;
+        model.UserName = random.String(Length, Length);
+
+        var result = await target.TestValidateAsync(model).ConfigureAwait(false);
 
         _ = result.ShouldHaveValidationErrorFor(m => m.UserName).Only();
     }

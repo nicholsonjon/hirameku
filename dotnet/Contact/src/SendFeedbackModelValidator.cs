@@ -36,6 +36,6 @@ public class SendFeedbackModelValidator : AbstractValidator<SendFeedbackModel>
             .MaximumLength(Constants.MaxStringLengthShort);
         _ = this.RuleFor(m => m.RecaptchaResponse)
             .NotEmpty()
-            .MaximumLength(Constants.MaxStringLengthShort);
+            .MaximumLength(Constants.MaxStringLengthLong);
     }
 }

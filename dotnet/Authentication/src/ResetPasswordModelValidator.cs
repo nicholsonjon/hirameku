@@ -28,7 +28,8 @@ public class ResetPasswordModelValidator : AbstractValidator<ResetPasswordModel>
         _ = this.RuleFor(m => m.Password)
             .CustomAsync(passwordValidator.ValidateAsync);
         _ = this.RuleFor(m => m.RecaptchaResponse)
-            .NotEmpty();
+            .NotEmpty()
+            .MaximumLength(Constants.MaxStringLengthLong);
         _ = this.RuleFor(m => m.SerializedToken)
             .NotEmpty()
             .Matches(Regexes.Base64String);

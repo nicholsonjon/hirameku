@@ -18,14 +18,17 @@
 namespace Hirameku.Authentication;
 
 using FluentValidation;
+using Hirameku.Common;
 
 public class SendPasswordResetModelValidator : AbstractValidator<SendPasswordResetModel>
 {
     public SendPasswordResetModelValidator()
     {
         _ = this.RuleFor(m => m.RecaptchaResponse)
-            .NotEmpty();
+            .NotEmpty()
+            .MaximumLength(Constants.MaxStringLengthLong);
         _ = this.RuleFor(m => m.UserName)
-            .NotEmpty();
+            .NotEmpty()
+            .MaximumLength(Constants.MaxStringLengthShort);
     }
 }

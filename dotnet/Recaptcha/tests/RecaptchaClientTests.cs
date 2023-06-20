@@ -161,13 +161,10 @@ public class RecaptchaClientTests
     private static async Task AssertRequest(HttpRequestMessage message)
     {
         // this is a Code Analysis false positive (apparently, it doesn't understand the null coalesce operator)
-        using var content = message.Content ?? JsonContent.Create("{}");
-        var expectedRequest = GetRequest();
-        var actualRequest = await content.ReadFromJsonAsync<RecaptchaRequest>().ConfigureAwait(false);
+        using var content = message.Content ?? new FormUrlEncodedContent(new Dictionary<string, string>());
+        var actualRequest = await content.ReadAsStringAsync().ConfigureAwait(false);
 
-        Assert.AreEqual(expectedRequest.RemoteIP, actualRequest?.RemoteIP);
-        Assert.AreEqual(expectedRequest.Response, actualRequest?.Response);
-        Assert.AreEqual(expectedRequest.Secret, actualRequest?.Secret);
+        Assert.AreEqual($"remoteip={RemoteIP}&response={RecaptchaResponse}&secret={SiteSecret}", actualRequest);
     }
 
     private static RecaptchaResponse GetRecaptchaResponse()
@@ -180,16 +177,6 @@ public class RecaptchaClientTests
             Hostname = Hostname,
             Score = MinimumScore,
             Success = true,
-        };
-    }
-
-    private static RecaptchaRequest GetRequest()
-    {
-        return new RecaptchaRequest()
-        {
-            RemoteIP = RemoteIP,
-            Response = RecaptchaResponse,
-            Secret = SiteSecret,
         };
     }
 
