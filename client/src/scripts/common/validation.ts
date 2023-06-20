@@ -29,7 +29,7 @@ export const Validation = {
     name: {
         maxLength: 40,
         minLength: 1,
-        pattern: /\p{L}+(?:\s*\p{L}+)+/u,
+        pattern: /\p{L}+(?:\s*\p{L}+)*/u,
     },
     userName: {
         maxLength: 32,

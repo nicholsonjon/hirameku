@@ -16,6 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import i18n from "i18next";
+import { useCallback } from "react";
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { initReactI18next, useTranslation } from "react-i18next";
 import { type FieldError, type FieldValues, useForm, type UseFormRegister } from "react-hook-form";
 import ValidatedInput from "./ValidatedInput";
@@ -27,8 +29,8 @@ const nameValidation = Validation.name;
 const emailValidation = Validation.emailAddress;
 const feedbackValidation = Validation.feedback;
 
-export default function ContactForm() {
-  const { formState: { dirtyFields, errors }, handleSubmit, register } = useForm({
+function FormContent() {
+  const { formState: { dirtyFields, errors }, handleSubmit, register, reset } = useForm({
     criteriaMode: "all",
     defaultValues: {
       "emailAddress": "",
@@ -36,10 +38,37 @@ export default function ContactForm() {
       "name": "",
     },
   });
-  const { t } = useTranslation("contact-form");
-  const submit = (data: FieldValues) => {
-    console.log(data);
-  };
+  const { executeRecaptcha } = useGoogleReCaptcha();
+  const submit = useCallback(
+    async (data: any) => {
+      if (executeRecaptcha) {
+        // TODO: replace with a config file lookup hooked via useEffect()
+        data.recaptchaResponse = await executeRecaptcha("SendFeedback");
+
+        console.log(JSON.stringify(data));
+
+        const request = new Request(
+          "http://localhost/api/v1/contact/sendFeedback",
+          {
+            body: JSON.stringify(data),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+          });
+        const response = await fetch(request);
+
+        if (response.ok) {
+          // TODO: show modal receipt message
+          reset();
+        } else {
+          // TODO: show modal error message
+          const result = await response.json();
+          console.log(result);
+        }
+      }
+    },
+    [ executeRecaptcha ]);
 
   // the design of the FieldErrors<T> type makes it impossible to dynamically access the properties of the errors object, so we need to cast
   // in order to maintain separation between ValidatedInput and the form
@@ -47,6 +76,7 @@ export default function ContactForm() {
 
   // and for the same reason, we also need to cast register
   const doRegister = register as unknown as UseFormRegister<FieldValues>;
+  const { t } = useTranslation("contact-form");
 
   return (
     <form id="contact-form" className="needs-validation" noValidate onSubmit={handleSubmit(submit)}>
@@ -102,5 +132,19 @@ export default function ContactForm() {
         </div>
       </div>
     </form>
+  );
+}
+
+export default function ContactForm() {
+  const reCaptchaKey = import.meta.env.PUBLIC_RECAPTCHA_V3_SITE_KEY;
+  const scriptProps = {
+    async: true,
+    defer: true,
+  };
+
+  return (
+    <GoogleReCaptchaProvider reCaptchaKey={reCaptchaKey} scriptProps={scriptProps}>
+      <FormContent />
+    </GoogleReCaptchaProvider>
   );
 }

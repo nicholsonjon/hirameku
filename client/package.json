@@ -8,7 +8,8 @@
   "packageManager": "yarn@3.6.0",
   "scripts": {
     "build": "astro build",
-    "dev": "astro dev",
+    "dev-docker": "astro dev --host",
+    "dev-local": "astro dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
@@ -38,6 +39,7 @@
     "i18next-browser-languagedetector": "^7.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-google-recaptcha-v3": "^1.10.1",
     "react-hook-form": "^7.44.3",
     "react-i18next": "^12.3.1"
   }
