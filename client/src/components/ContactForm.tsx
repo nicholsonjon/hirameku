@@ -66,6 +66,8 @@ function FormContent() {
           const result = await response.json();
           console.log(result);
         }
+      } else {
+        // TODO: show reCAPTCHA error message
       }
     },
     [ executeRecaptcha ]);
