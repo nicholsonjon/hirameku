@@ -23,8 +23,6 @@ services:
     image: ${DOCKER_REGISTRY-}redis:6.0-alpine
     networks:
       - backend
-    ports:
-      - "6379:6379"
 
   cardservice:
     build:
@@ -41,8 +39,6 @@ services:
     networks:
       - backend
       - frontend
-    ports:
-      - "43213:80"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
@@ -57,8 +53,6 @@ services:
     image: ${DOCKER_REGISTRY-}hirameku/client
     networks:
       - frontend
-    ports:
-      - "43211:80"
 
   contactservice:
     build:
@@ -75,8 +69,6 @@ services:
     networks:
       - backend
       - frontend
-    ports:
-      - "43214:80"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
@@ -88,8 +80,6 @@ services:
     image: ${DOCKER_REGISTRY-}mongo:4.0
     networks:
       - backend
-    ports:
-       - "27017:27017"
 
   identityservice:
     build:
@@ -109,8 +99,6 @@ services:
     networks:
       - backend
       - frontend
-    ports:
-      - "43212:80"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
@@ -123,17 +111,12 @@ services:
     networks:
       - backend
       - frontend
-    ports:
-      - "5341:80"
 
   messagebroker:
     container_name: messagebroker
     image: ${DOCKER_REGISTRY-}rabbitmq:3.12-management-alpine
     networks:
       - backend
-    ports:
-      - "5671:5671"
-      - "15671:15671"
 
   reverseproxy:
     build:
@@ -147,7 +130,7 @@ services:
     networks:
       - frontend
     ports:
-      - "80:80"
+      - "127.0.0.1:80:80"
 
   smtpserver:
     container_name: smtpserver
@@ -155,7 +138,7 @@ services:
     networks:
       - backend
     ports:
-      - "2525:25"
+      - "127.0.0.1:8025:80"
 
 networks:
   backend:

@@ -6,19 +6,24 @@ Hirameku is a cloud-native, vendor-agnostic, serverless application for studying
 
 Hirameku is a [Jamstack](https://jamstack.org/) application that supports any capable host and API-compatible backend (cloud or on-prem). All development is done locally using the following:
 
-- .NET >=6
-- Latest NodeJS LTS release
-- Astro >= 2.5*
-- React >= 18
-- TypeScript >=5.0
-- Docker Desktop >=4
-- Redis ~6.0
-- MongoDB ~4.0
-- smtp4dev
-- Visual Studio 2022
-- Visual Studio Code
+- [.NET >=6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+- [Latest NodeJS LTS release](https://nodejs.org/en/download)
+- [Astro >= 2.5](https://astro.build/)*
+- [React >= 18](https://react.dev/)
+- [TypeScript >=5.0](https://www.typescriptlang.org/)
+- [Docker Desktop >=4](https://www.docker.com/products/docker-desktop/) (or Docker Engine)
+- [NGINX >= 1.25](https://nginx.org/)
+- [RabbitMQ >= 3.12**](https://www.rabbitmq.com/)
+- [Redis ~6.0](https://redis.io/)
+- [MongoDB ~4.0](https://www.mongodb.com/)
+- [smtp4dev](https://github.com/rnwood/smtp4dev)
+- [Seq](https://datalust.co/seq)
+- [Visual Studio 2022](https://visualstudio.microsoft.com/vs/)
+- [Visual Studio Code](https://code.visualstudio.com/)
 
 > *Since [Astro requires 'unsafe-inline'](https://docs.astro.build/en/guides/troubleshooting/#refused-to-execute-inline-script) (thus defeating much of the benefit of CSP), its use is intended to be retired. The client will be ported to a React/NextJS statically generated solution using server components and [next-mdx-remote](https://github.com/hashicorp/next-mdx-remote); however, that project hasn't quite caught up with NextJS. [The documentation](https://github.com/hashicorp/next-mdx-remote#react-server-components-rsc--nextjs-app-directory-support) indicates the `/next-mdx-remote/rsc` API is currently unstable, but the last release was 2023-03-01. It's also possible that Astro will come up with a solution to stop inlining scripts, which would obviate the need to migrate to NextJS. Such a feature is currently up for discussion on the [roadmap](https://github.com/withastro/roadmap/discussions/377).
+
+> **RabbitMQ will be used to implement eventual consistency among the microservices. Locally, it stands in for cloud-equivalent services like [SNS](https://aws.amazon.com/sns/), [Service Bus](https://azure.microsoft.com/en-us/products/service-bus/), and [Pub/Sub](https://cloud.google.com/pubsub/).
 
 AWS, Azure, and Google Cloud are all planned to be supported as cloud hosts, using the following services:
 
@@ -26,17 +31,19 @@ AWS, Azure, and Google Cloud are all planned to be supported as cloud hosts, usi
 - AWS CloudFront/Azure CDN/Google Cloud CDN
 - AWS API Gateway/Azure API Management/Google Cloud API Gateway
 - AWS Lambda/Azure Functions/Google Cloud Functions
-- AWS SQS/Azure Service Bus/Google Pub/Sub
+- AWS SNS/Azure Service Bus/Google Pub/Sub
 - AWS ElastiCache/Azure Cache/Memorystore for Redis
 - AWS DocumentDB/Azure Cosmos DB/MongoDB Atlas on Google Cloud
 
-Deployments will be handled by [Pulumi](https://www.pulumi.com/) and the cloud vendors' respective CLI tools.
+AWS will be supported first, with Azure also being given priority. Google Cloud will be a best effort case.
+
+Deployments are planned to be handled by [Pulumi](https://www.pulumi.com/) and the cloud vendors' respective CLI tools.
 
 # Getting Started
 
 To build and run Hirameku locally, you'll need:
 
-- .NET >=6.x SDK
+- .NET >=6 SDK
 - NodeJS >=18
 - Docker Desktop >= 4 (technically, you don't _have_ to use Docker for dev, but that's the supported environment)
 
@@ -46,18 +53,136 @@ To set up your local dev environment, do the following:
 
 1. Clone the repo
 2. Install the [.NET 6 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
-3. If using Windows, [install WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)
-4. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or if you're on Linux, Docker Engine, if you prefer)
-5. Enable Swarm mode in Docker (`docker swarm init`), as this is used to manage secrets
-6. _Configuration instructions go here_ (TBD)
-    - if you run into port conflicts, you can override them in a [docker-compose.override.yml](https://docs.docker.com/compose/extends/) file, which is intentionally `.gitignore`d
-7.  Open `Hirameku.sln` and build it (or run `dotnet build` in a terminal)
-8. `docker compose -f docker-compose.yml -f docker-compose.override.yml up`
+3. Install the latest [LTS release of NodeJS](https://nodejs.org/en/download)
+4. If using Windows, [install WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)
+5. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or if you're on Linux, Docker Engine, if you prefer)
+6. Set up your local environment parameters by consulting the [Configuration](#Configuration) section below
+7. `docker compose -f docker-compose.yml -f docker-compose.override.yml up`
     - omit `docker-compose.override.yml` if you're happy with the base file
 
-To develop the client, you'll also need to install the [latest NodeJS LTS release](https://nodejs.org/). Change to the `client` directory and run `npm i` to install the packages. The client directory is included in the `docker-compose.yml` file mentioned above, so you don't have to do anything just to run the app.
+To develop the client, change to the `client` directory and run `npm i` to install the packages. The client directory is included in the `docker-compose.yml` file mentioned above, so you shouldn't have to do anything just to run the app. Simply open the `client` directory in Visual Studio Code to get started. The [astro-build.astro-vscode](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode) and [ms-azuretools.vscode-docker](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker) extensions are recommended for development. Use of [ms-vscode-remote.remote-containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) for dev containers is a also a planned future enhancement.
 
-## Useful Docker Scripts
+If you didn't modify it by means of the `docker-compose.override.yml` file, the application should be accessible at [http://localhost/](http://localhost/) once your containers are running.
+
+## Configuration
+
+While most elements of the system come with reasonable defaults, things like API keys, usernames, passwords, and other such confidential or authenticating details are intentionally omitted from the config files. You must supply these in override files in order to run the system. Do not modify the base files (i.e. any files that are aren't `.gitignore`d).
+
+### Create `appsettings.Development.json` files
+
+Because the services require configuration that varies by the hosting environment, you will need to specify things as applicable to your workstation when developing. These configuration details should be specified in the `appsettings.Development.json` file for each service. Do not modify the base `appsettings.json` file. All configuration settings may be overriden in `appsettings.Development.json`, even ones already specified in the base files. You can also specify/override configuration settings using environment variables. See [Configuration in ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-6.0) for more information.
+
+For ContactService, a basic `appsettings.Development.json` would look something like this:
+
+```json
+{
+  "Hirameku": {
+    "Email": {
+      "EmailerOptions": {
+        "FeedbackEmailAddress": "feedback@localhost",
+        "RejectRegistrationUrl": "http://localhost/reject-registration",
+        "ResetPasswordUrl": "http://localhost/reset-password",
+        "Sender": "noreply@localhost",
+        "SmtpCredentials": {
+          "Password": null,
+          "UserName": null
+        },
+        "SmtpPort": "25",
+        "SmtpServer": "smtpserver",
+        "UseTls": false,
+        "VerifyEmailUrl": "http://localhost/verify-email"
+      }
+    },
+    "Recaptcha": {
+      "RecaptchaOptions": {
+        "ExpectedHostname": "localhost",
+        "SiteSecret": "Overridden by secrets.json"
+      }
+    }
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Trace",
+      "Microsoft": "Debug"
+    }
+  }
+}
+```
+
+For IdentityService, you can use the following:
+
+```json
+{
+  "Hirameku": {
+    "Caching": {
+      "CacheOptions:ConnectionString": "cache:6379"
+    },
+    "Common": {
+      "Service": {
+        "PasswordValidatorOptions:PasswordBlacklistPath": "/etc/hirameku/password-blacklist.txt",
+        "SecurityTokenOptions": {
+          "Audience": "http://localhost/",
+          "Issuer": "http://localhost/",
+          "SecretKey": "Overridden by secrets.json"
+        }
+      }
+    },
+    "Data": {
+      "DatabaseOptions:ConnectionString": "mongodb://database:27017/"
+    },
+    "Email": {
+      "EmailerOptions": {
+        "RejectRegistrationUrl": "http://localhost/reject-registration/",
+        "ResetPasswordUrl": "http://localhost/reset-password/",
+        "Sender": "noreply@localhost",
+        "SmtpCredentials": {
+          "Password": null,
+          "UserName": null
+        },
+        "SmtpPort": "25",
+        "SmtpServer": "smtpserver",
+        "UseTls": false,
+        "VerifyEmailUrl": "http://localhost/verify-email/"
+      }
+    },
+    "Recaptcha": {
+      "RecaptchaOptions": {
+        "ExpectedHostname": "localhost",
+        "SiteSecret": "Overridden by secrets.json"
+      }
+    }
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Trace",
+      "Microsoft": "Debug"
+    }
+  }
+}
+```
+
+### Generate a reCAPTCHA site key
+
+- [Generate a reCAPTCHA site key and secret](https://www.google.com/recaptcha/admin/create)
+- Enter the site key into the `Hirameku:Recaptcha:RecaptchaOptions:SiteKey` property of `appsettings.Development.json` in both ContactService and IdentityService
+- Enter the secret key into your [Secrets.json file](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0) for both ContactService and IdentityService
+
+### Docker
+
+In the `/docker` directory, create a [docker-compose.override.yml](https://docs.docker.com/compose/extends/) file. Add the following contents:
+
+```yml
+services:
+  client:
+    environment:
+      - PUBLIC_RECAPTCHA_V3_SITE_KEY=<your_recaptcha_site_key>
+```
+
+Replace the `<your_recaptcha_site_key>` token with the site key you generated.
+
+Additionally, If you run into port conflicts, you can override them in `docker-compose.override.yml`, which is intentionally `.gitignore`d. Follow the link above for more details.
+
+### Useful Docker Scripts
 
 To remove dangling images and volumes, use the following:
 
@@ -130,7 +255,7 @@ Access-Control-Allow-Origin: https://www.hirameku.app
 
 Security-related HTTP headers:
 
-```
+```txt
 Cross-Origin-Resource-Policy: same-origin
 Content Security Policy:
     connect-src 'self' https://*.api.hirameku.app https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;

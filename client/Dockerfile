@@ -25,4 +25,4 @@ COPY ["*config.*", "./"]
 COPY ["public/", "./public/"]
 COPY ["src/", "./src/"]
 
-ENTRYPOINT npm run dev --host
+ENTRYPOINT ["npm", "run", "dev-docker"]
