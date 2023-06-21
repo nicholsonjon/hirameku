@@ -135,9 +135,9 @@ public class PasswordDaoTests
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     [ExpectedException(typeof(ArgumentException))]
-    [DataRow(null, DisplayName = nameof(this.PasswordDao_SavePassword_Password_Throws) + "(null)")]
-    [DataRow("", DisplayName = nameof(this.PasswordDao_SavePassword_Password_Throws) + "(string.Empty)")]
-    [DataRow(" \t\r\n", DisplayName = nameof(this.PasswordDao_SavePassword_Password_Throws) + "(WhiteSpace)")]
+    [DataRow(null, DisplayName = nameof(PasswordDao_SavePassword_Password_Throws) + "(null)")]
+    [DataRow("", DisplayName = nameof(PasswordDao_SavePassword_Password_Throws) + "(string.Empty)")]
+    [DataRow(" \t\r\n", DisplayName = nameof(PasswordDao_SavePassword_Password_Throws) + "(WhiteSpace)")]
     public async Task PasswordDao_SavePassword_Password_Throws(string password)
     {
         var target = GetTarget();
