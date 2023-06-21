@@ -289,10 +289,10 @@ public class EmailerTests
     {
         var subject = Resources.SendFeedbackSubject;
         var htmlParameters = new KeyValuePair<string, object[]>(
-            Resources.SendFeedbackHtml,
-            new object[] { subject, Name, EmailAddress, Feedback });
+            Resources.SendFeedbackHtml.ReplaceLineEndings(),
+            new object[] { subject, EmailAddress, Name, Feedback });
         var textParameters = new KeyValuePair<string, object[]>(
-            Resources.SendFeedbackText,
+            Resources.SendFeedbackText.ReplaceLineEndings(),
             new object[] { Name, EmailAddress, Feedback });
 
         return RunAndAssertTest(
@@ -312,10 +312,10 @@ public class EmailerTests
             ? string.Format(InvariantCulture, Resources.ValidityPeriodText, "1 day")
             : string.Empty;
         var htmlParameters = new KeyValuePair<string, object[]>(
-            Resources.ForgotPasswordHtml,
+            Resources.ForgotPasswordHtml.ReplaceLineEndings(),
             new object[] { subject, ResetPasswordUrl, validityText });
         var textParameters = new KeyValuePair<string, object[]>(
-            Resources.ForgotPasswordText,
+            Resources.ForgotPasswordText.ReplaceLineEndings(),
             new object[] { ResetPasswordUrl, validityText });
         var tokenData = new EmailTokenData(Pepper, Token, SmtpUserName, doesLinkExpire ? TimeSpan.FromDays(1) : null);
 
@@ -336,10 +336,10 @@ public class EmailerTests
             ? string.Format(InvariantCulture, Resources.ValidityPeriodText, "1 day")
             : string.Empty;
         var htmlParameters = new KeyValuePair<string, object[]>(
-            Resources.VerifyEmailHtml,
+            Resources.VerifyEmailHtml.ReplaceLineEndings(),
             new object[] { subject, VerifyEmailUrl, validityText, RejectRegistrationUrl });
         var textParameters = new KeyValuePair<string, object[]>(
-            Resources.VerifyEmailText,
+            Resources.VerifyEmailText.ReplaceLineEndings(),
             new object[] { VerifyEmailUrl, validityText, RejectRegistrationUrl });
         var tokenData = new EmailTokenData(Pepper, Token, SmtpUserName, doesLinkExpire ? TimeSpan.FromDays(1) : null);
 

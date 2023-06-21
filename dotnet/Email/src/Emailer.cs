@@ -86,7 +86,7 @@ public class Emailer : IEmailer
 
         using var message = this.GetMimeMessage(
             this.Options.Value.FeedbackEmailAddress,
-            name,
+            string.Empty,
             Resources.SendFeedbackSubject,
             htmlBody,
             textBody);
@@ -198,14 +198,14 @@ public class Emailer : IEmailer
                 InvariantCulture,
                 Resources.SendFeedbackHtml,
                 Resources.SendFeedbackSubject,
-                name,
                 replyToAddress ?? string.Empty,
+                name,
                 Regex.IsMatch(feedback, Regexes.HtmlTag) ? WebUtility.HtmlEncode(feedback) : feedback),
             "text" => string.Format(
                 InvariantCulture,
                 Resources.SendFeedbackText,
                 name,
-                replyToAddress ?? string.Empty,
+                replyToAddress ?? "email address not provided",
                 feedback),
             _ => throw new ArgumentException(
                 string.Format(InvariantCulture, Exceptions.UnsupportedEmailBodyType, type),
