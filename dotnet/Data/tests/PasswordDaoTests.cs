@@ -532,7 +532,7 @@ public class PasswordDaoTests
                             u,
                             user,
                             UserStatus,
-                            (UserStatus? us) => Assert.AreEqual(updatedUserStatus, us));
+                            (UserStatus us) => Assert.AreEqual(updatedUserStatus, us));
                     }
                     else
                     {

@@ -131,7 +131,7 @@ public static class TestUtilities
         UpdateDefinition<TDocument> update,
         TDocument document,
         string updatedFieldName,
-        Action<TValue?> assertValueAction)
+        Action<TValue> assertValueAction)
     {
         if (filter == null)
         {
@@ -151,19 +151,20 @@ public static class TestUtilities
         var type = update.GetType();
         var bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
         var field = type.GetField("_field", bindingFlags)?.GetValue(update)
-            as FieldDefinition<TDocument, TValue?>;
+            as FieldDefinition<TDocument, TValue>;
         var opName = type.GetField("_operatorName", bindingFlags)?.GetValue(update) as string;
         var renderedField = field?.Render(
             BsonSerializer.LookupSerializer<TDocument>(),
             BsonSerializer.SerializerRegistry);
-        var value = (TValue?)type.GetField("_value", bindingFlags)?.GetValue(update);
+        var value = type.GetField("_value", bindingFlags)?.GetValue(update);
 
         Assert.IsInstanceOfType(filter, typeof(ExpressionFilterDefinition<TDocument>));
         var expression = ((ExpressionFilterDefinition<TDocument>)filter).Expression.Compile();
         Assert.IsTrue(expression(document));
         Assert.AreEqual("$set", opName);
         Assert.AreEqual(updatedFieldName, renderedField?.FieldName);
-        assertValueAction(value);
+        Assert.IsNotNull(value);
+        assertValueAction((TValue)value);
     }
 
     public static double CalculateBase64Length(int bytes)
