@@ -13,7 +13,7 @@ Hirameku is a [Jamstack](https://jamstack.org/) application that supports any ca
 - [TypeScript >=5.0](https://www.typescriptlang.org/)
 - [Docker Desktop >=4](https://www.docker.com/products/docker-desktop/) (or Docker Engine)
 - [NGINX >= 1.25](https://nginx.org/)
-- [RabbitMQ >= 3.12**](https://www.rabbitmq.com/)
+- [RabbitMQ >= 3.12*](https://www.rabbitmq.com/)
 - [Redis ~6.0](https://redis.io/)
 - [MongoDB ~4.0](https://www.mongodb.com/)
 - [smtp4dev](https://github.com/rnwood/smtp4dev)
@@ -21,7 +21,11 @@ Hirameku is a [Jamstack](https://jamstack.org/) application that supports any ca
 - [Visual Studio 2022](https://visualstudio.microsoft.com/vs/)
 - [Visual Studio Code](https://code.visualstudio.com/)
 
-> *Since [Astro requires 'unsafe-inline'](https://docs.astro.build/en/guides/troubleshooting/#refused-to-execute-inline-script) (thus defeating much of the benefit of CSP), its use is intended to be retired. The client will be ported to a React/NextJS statically generated solution using server components and [next-mdx-remote](https://github.com/hashicorp/next-mdx-remote); however, that project hasn't quite caught up with NextJS. [The documentation](https://github.com/hashicorp/next-mdx-remote#react-server-components-rsc--nextjs-app-directory-support) indicates the `/next-mdx-remote/rsc` API is currently unstable, but the last release was 2023-03-01. It's also possible that Astro will come up with a solution to stop inlining scripts, which would obviate the need to migrate to NextJS. Such a feature is currently up for discussion on the [roadmap](https://github.com/withastro/roadmap/discussions/377).
+> *Since [Astro requires `unsafe-inline`](https://docs.astro.build/en/guides/troubleshooting/#refused-to-execute-inline-script) (thus defeating much of the benefit of CSP), it will be replaced with an alternative. The intent was to use [NextJS](https://nextjs.org/) and [React Bootstrap](https://react-bootstrap.github.io/) with [INLINE_RUNTIME_CHUNK=false](https://create-react-app.dev/docs/advanced-configuration/), but I had no end of problems with that, including mysterious build errors and components inexplicably not loading (but also not producing errors). I was going to switch to [MUI](https://mui.com/), but it requires [server-side rendering to support CSP](https://mui.com/material-ui/guides/content-security-policy/), which was not the original objective. Chakra UI also [requires `unsafe-inline`](https://github.com/chakra-ui/chakra-ui/issues/3294).
+> 
+> Supporting nonces at all implies server-side rendering, since the nonce has to be unique for every request. That leaves hashes as the only possible solution for inline scripts, but that also requires the deployment process to update the HTTP response headers. While that's feasible, I haven't found anything that natively supports it. It's pretty frustrating how poorly supported CSP is in the React ecosystem. We have this fantastic security tool at our disposal and people are just ignoring it.
+>
+> [Angular also requires nonces](https://angular.io/guide/security), meaning no static site generation. The [VueJS](https://vuejs.org/) runtime appears to be [CSP-compliant](https://v2.vuejs.org/v2/guide/installation.html#CSP-environments) and [Nuxt](https://nuxt.com/) can handle SSG. [SvelteKit](https://kit.svelte.dev/) also [supports CSP hashes](https://kit.svelte.dev/docs/configuration#csp). I've been wanting to use Svelte because it's so slick, but the lack of jobs for it has made me hesitant. I think this is one of those cases where doing the right thing in terms of security should outweigh other factors. Using a CSP without restoring to `unsafe-inline` should be assumed for apps on the modern Internet. Since I'm loathe to abandon SSG for cost and performance reasons, that means either VueJS or Svelte. I'll try them both out and then port over what little of the client I have to whatever I decide.
 
 > **RabbitMQ will be used to implement eventual consistency among the microservices. Locally, it stands in for cloud-equivalent services like [SNS](https://aws.amazon.com/sns/), [Service Bus](https://azure.microsoft.com/en-us/products/service-bus/), and [Pub/Sub](https://cloud.google.com/pubsub/).
 
@@ -229,7 +233,7 @@ This section is used to keep running notes about the application. Most of these 
 3. When saving a `PersistentToken`, include the date/time, user agent, IP, and geolocation information so this can later be relayed to the user on their dashboard to decide whether they want to delete one or more tokens
 4. With the preceding as a prerequisite, provide users the ability to delete `PersistentToken`s
 5. Integrate Polly into all API interactions (currently only implemented for HttpClient--also need it for Mongo, Redis, SMTP, and queues)
-6. Add tracing support via OpenTelemetry and Jaeger (instead of logging traces via NLog)
+6. Add tracing support via OpenTelemetry and Jaeger
     - see https://devblogs.microsoft.com/dotnet/observability-asp-net-core-apps/
     - use [Activities](https://github.com/dotnet/runtime/blob/4f9ae42d861fcb4be2fcd5d3d55d5f227d30e723/src/libraries/System.Diagnostics.DiagnosticSource/src/ActivityUserGuide.md#overview) instead of CorrelationManager.ActivityId
     - correlate NLog messages using [NLog.DiagnosticSource](https://github.com/NLog/NLog.DiagnosticSource)
@@ -427,7 +431,7 @@ The client is implemented as a statically generated site using Astro with React 
 - /forgot-password
 - /privacy
 - /register
-- /resend-verification-email
+- /resend-verification
 - /reset-password
 - /sign-in
 - /verify-email
