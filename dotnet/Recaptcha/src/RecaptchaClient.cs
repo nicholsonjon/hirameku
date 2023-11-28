@@ -166,7 +166,7 @@ public class RecaptchaClient : IRecaptchaClient
 
         Log.ForDebugEvent()
             .Property(LogProperties.Data, recaptchaResponse)
-            .Message("reCAPTCHA API request")
+            .Message("reCAPTCHA API response")
             .Log();
 
         return recaptchaResponse ?? new RecaptchaResponse();
