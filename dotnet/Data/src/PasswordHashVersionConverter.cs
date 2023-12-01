@@ -21,6 +21,7 @@ using Hirameku.Data.Properties;
 using Newtonsoft.Json;
 using System;
 using System.Globalization;
+using System.Text;
 
 public class PasswordHashVersionConverter : JsonConverter<PasswordHashVersion>
 {
@@ -35,10 +36,7 @@ public class PasswordHashVersionConverter : JsonConverter<PasswordHashVersion>
         bool hasExistingValue,
         JsonSerializer serializer)
     {
-        if (reader == null)
-        {
-            throw new ArgumentNullException(nameof(reader));
-        }
+        ArgumentNullException.ThrowIfNull(reader);
 
         var json = reader.Value;
         PasswordHashVersion result;
@@ -51,7 +49,7 @@ public class PasswordHashVersionConverter : JsonConverter<PasswordHashVersion>
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                Exceptions.InvalidPasswordHashVersionRepresentation,
+                CompositeFormat.Parse(Exceptions.InvalidPasswordHashVersionRepresentation).Format,
                 json);
 
             throw new JsonSerializationException(message);
@@ -62,10 +60,7 @@ public class PasswordHashVersionConverter : JsonConverter<PasswordHashVersion>
 
     public override void WriteJson(JsonWriter writer, PasswordHashVersion? value, JsonSerializer serializer)
     {
-        if (writer == null)
-        {
-            throw new ArgumentNullException(nameof(writer));
-        }
+        ArgumentNullException.ThrowIfNull(writer);
 
         if (value != null)
         {

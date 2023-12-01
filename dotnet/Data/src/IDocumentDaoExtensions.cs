@@ -22,10 +22,7 @@ public static class IDocumentDaoExtensions
     public static Task<T?> Fetch<T>(this IDocumentDao<T> instance, string id, CancellationToken cancellationToken = default)
         where T : IDocument
     {
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
 
         return instance.Fetch(d => d.Id == id, cancellationToken);
     }

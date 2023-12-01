@@ -17,6 +17,7 @@
 
 namespace Hirameku.ContactService;
 
+using Asp.Versioning;
 using Hirameku.Common.Service;
 using Hirameku.Contact;
 using Microsoft.AspNetCore.Http;

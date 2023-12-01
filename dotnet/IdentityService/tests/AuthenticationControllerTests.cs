@@ -263,10 +263,10 @@ public class AuthenticationControllerTests
     {
         var context = new DefaultHttpContext();
         var headers = context.Request.Headers;
-        headers.Add(HeaderNames.Accept, Accept);
-        headers.Add(HeaderNames.ContentEncoding, ContentEncoding);
-        headers.Add(HeaderNames.ContentLanguage, ContentLanguage);
-        headers.Add(HeaderNames.UserAgent, UserAgent);
+        headers[HeaderNames.Accept] = Accept;
+        headers[HeaderNames.ContentEncoding] = ContentEncoding;
+        headers[HeaderNames.ContentLanguage] = ContentLanguage;
+        headers[HeaderNames.UserAgent] = UserAgent;
         context.Connection.RemoteIpAddress = IPAddress.Parse(RemoteIP);
 
         var mockAccessor = new Mock<IHttpContextAccessor>();

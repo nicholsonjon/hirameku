@@ -17,8 +17,6 @@
 
 namespace Hirameku.Common.Service;
 
-using System.Runtime.Serialization;
-
 [Serializable]
 public class UserMustChangePasswordException : Exception
 {
@@ -33,11 +31,6 @@ public class UserMustChangePasswordException : Exception
 
     public UserMustChangePasswordException(string? message, Exception? innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected UserMustChangePasswordException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }

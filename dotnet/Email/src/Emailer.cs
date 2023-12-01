@@ -27,10 +27,11 @@ using NLog;
 using System;
 using System.Globalization;
 using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-public class Emailer : IEmailer
+public partial class Emailer : IEmailer
 {
     private static readonly CultureInfo InvariantCulture = CultureInfo.InvariantCulture;
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -118,10 +119,7 @@ public class Emailer : IEmailer
                 cancellationToken,
             });
 
-        if (tokenData == null)
-        {
-            throw new ArgumentNullException(nameof(tokenData));
-        }
+        ArgumentNullException.ThrowIfNull(tokenData);
 
         await this.Validator.ValidateAndThrowAsync(tokenData, cancellationToken).ConfigureAwait(false);
 
@@ -163,10 +161,7 @@ public class Emailer : IEmailer
                 cancellationToken,
             });
 
-        if (tokenData == null)
-        {
-            throw new ArgumentNullException(nameof(tokenData));
-        }
+        ArgumentNullException.ThrowIfNull(tokenData);
 
         await this.Validator.ValidateAndThrowAsync(tokenData, cancellationToken).ConfigureAwait(false);
 
@@ -186,6 +181,9 @@ public class Emailer : IEmailer
         Log.Trace("Exiting method", data: default(object));
     }
 
+    [GeneratedRegex(Regexes.HtmlTag)]
+    private static partial Regex GeneratedHtmlTagRegex();
+
     private static string GetSendFeedbackBody(
         string type,
         string name,
@@ -196,19 +194,22 @@ public class Emailer : IEmailer
         {
             "html" => string.Format(
                 InvariantCulture,
-                Resources.SendFeedbackHtml,
-                Resources.SendFeedbackSubject,
+                CompositeFormat.Parse(Resources.SendFeedbackHtml).Format,
+                CompositeFormat.Parse(Resources.SendFeedbackSubject).Format,
                 replyToAddress ?? string.Empty,
                 name,
-                Regex.IsMatch(feedback, Regexes.HtmlTag) ? WebUtility.HtmlEncode(feedback) : feedback),
+                GeneratedHtmlTagRegex().IsMatch(feedback) ? WebUtility.HtmlEncode(feedback) : feedback),
             "text" => string.Format(
                 InvariantCulture,
-                Resources.SendFeedbackText,
+                CompositeFormat.Parse(Resources.SendFeedbackText).Format,
                 name,
                 replyToAddress ?? "email address not provided",
                 feedback),
             _ => throw new ArgumentException(
-                string.Format(InvariantCulture, Exceptions.UnsupportedEmailBodyType, type),
+                string.Format(
+                    InvariantCulture,
+                    CompositeFormat.Parse(Exceptions.UnsupportedEmailBodyType).Format,
+                    type),
                 nameof(type)),
         };
     }
@@ -241,7 +242,7 @@ public class Emailer : IEmailer
                 text += minutes > 1 ? " minutes" : " minute";
             }
 
-            text = string.Format(InvariantCulture, Resources.ValidityPeriodText, text);
+            text = string.Format(InvariantCulture, CompositeFormat.Parse(Resources.ValidityPeriodText).Format, text);
         }
 
         return text;
@@ -257,17 +258,20 @@ public class Emailer : IEmailer
         {
             "html" => string.Format(
                 InvariantCulture,
-                Resources.ForgotPasswordHtml,
-                Resources.ForgotPasswordSubject,
+                CompositeFormat.Parse(Resources.ForgotPasswordHtml).Format,
+                CompositeFormat.Parse(Resources.ForgotPasswordSubject).Format,
                 forgotPasswordUrl,
                 validityText),
             "text" => string.Format(
                 InvariantCulture,
-                Resources.ForgotPasswordText,
+                CompositeFormat.Parse(Resources.ForgotPasswordText).Format,
                 forgotPasswordUrl,
                 validityText),
             _ => throw new ArgumentException(
-                string.Format(InvariantCulture, Exceptions.UnsupportedEmailBodyType, type),
+                string.Format(
+                    InvariantCulture,
+                    CompositeFormat.Parse(Exceptions.UnsupportedEmailBodyType).Format,
+                    type),
                 nameof(type)),
         };
     }
@@ -323,19 +327,22 @@ public class Emailer : IEmailer
         {
             "html" => string.Format(
                 InvariantCulture,
-                Resources.VerifyEmailHtml,
-                Resources.VerifyEmailSubject,
+                CompositeFormat.Parse(Resources.VerifyEmailHtml).Format,
+                CompositeFormat.Parse(Resources.VerifyEmailSubject).Format,
                 verifyEmailUrl,
                 validityText,
                 rejectRegistrationUrl),
             "text" => string.Format(
                 InvariantCulture,
-                Resources.VerifyEmailText,
+                CompositeFormat.Parse(Resources.VerifyEmailText).Format,
                 verifyEmailUrl,
                 validityText,
                 rejectRegistrationUrl),
             _ => throw new ArgumentException(
-                string.Format(InvariantCulture, Exceptions.UnsupportedEmailBodyType, type),
+                string.Format(
+                    InvariantCulture,
+                    CompositeFormat.Parse(Exceptions.UnsupportedEmailBodyType).Format,
+                    type),
                 nameof(type)),
         };
     }

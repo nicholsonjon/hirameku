@@ -69,10 +69,7 @@ public class PasswordHasher : IPasswordHasher
     {
         Log.Trace("Entering method", data: new { parameters = new { password = "REDACTED", version } });
 
-        if (version == null)
-        {
-            throw new ArgumentNullException(nameof(version));
-        }
+        ArgumentNullException.ThrowIfNull(version);
 
         return this.HashPassword(password, RandomNumberGenerator.GetBytes(version.SaltLength), version);
     }
@@ -96,15 +93,8 @@ public class PasswordHasher : IPasswordHasher
             throw new ArgumentException(CommonExceptions.StringNullOrWhiteSpace, nameof(password));
         }
 
-        if (salt == null)
-        {
-            throw new ArgumentNullException(nameof(salt));
-        }
-
-        if (version == null)
-        {
-            throw new ArgumentNullException(nameof(version));
-        }
+        ArgumentNullException.ThrowIfNull(salt);
+        ArgumentNullException.ThrowIfNull(version);
 
         var hash = KeyDerivation.Pbkdf2(
             password,
@@ -137,10 +127,7 @@ public class PasswordHasher : IPasswordHasher
                 },
             });
 
-        if (version == null)
-        {
-            throw new ArgumentNullException(nameof(version));
-        }
+        ArgumentNullException.ThrowIfNull(version);
 
         var hashPasswordResult = this.HashPassword(password, salt, version);
         var areEqual = AreEqual(hashedPassword, hashPasswordResult.Hash);

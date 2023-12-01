@@ -24,6 +24,7 @@ using MongoDB.Driver;
 using NLog;
 using System.Globalization;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using CommonExceptions = Hirameku.Common.Properties.Exceptions;
 
@@ -75,7 +76,7 @@ public class VerificationDao : IVerificationDao
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                CommonExceptions.InvalidEnumValue,
+                CompositeFormat.Parse(CommonExceptions.InvalidEnumValue).Format,
                 type.ToString(),
                 typeof(VerificationType).FullName);
 

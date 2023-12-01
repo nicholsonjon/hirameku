@@ -17,8 +17,6 @@
 
 namespace Hirameku.Email;
 
-using System.Runtime.Serialization;
-
 [Serializable]
 public class InvalidTokenException : Exception
 {
@@ -33,11 +31,6 @@ public class InvalidTokenException : Exception
 
     public InvalidTokenException(string? message, Exception? innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected InvalidTokenException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }

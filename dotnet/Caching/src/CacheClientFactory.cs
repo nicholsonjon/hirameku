@@ -33,7 +33,7 @@ public class CacheClientFactory : ICacheClientFactory
         this.Options = options;
     }
 
-    private static IConnectionMultiplexer? Connection { get; set; }
+    private static ConnectionMultiplexer? Connection { get; set; }
 
     private IOptions<CacheOptions> Options { get; }
 
@@ -41,10 +41,7 @@ public class CacheClientFactory : ICacheClientFactory
     {
         Log.Trace("Exiting method", data: default(object));
 
-        if (this.disposed)
-        {
-            throw new ObjectDisposedException(this.GetType().FullName);
-        }
+        ObjectDisposedException.ThrowIf(this.disposed, this);
 
         var options = this.Options.Value;
         var client = new CacheClient(GetDatabase(options.ConnectionString, options.DatabaseNumber), this.Options);

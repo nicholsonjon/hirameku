@@ -24,6 +24,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using NLog;
 using System.Globalization;
+using System.Text;
 using CommonExceptions = Hirameku.Common.Properties.Exceptions;
 
 public class PersistentTokenDao : IPersistentTokenDao
@@ -90,7 +91,7 @@ public class PersistentTokenDao : IPersistentTokenDao
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                CommonExceptions.UserIdDoesNotExist,
+                CompositeFormat.Parse(CommonExceptions.UserIdDoesNotExist).Format,
                 userId);
 
             throw new UserDoesNotExistException(message);
@@ -102,7 +103,7 @@ public class PersistentTokenDao : IPersistentTokenDao
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                Exceptions.NoStoredPasswordHash,
+                CompositeFormat.Parse(Exceptions.NoStoredPasswordHash).Format,
                 userId);
 
             throw new InvalidOperationException(message);
@@ -167,7 +168,7 @@ public class PersistentTokenDao : IPersistentTokenDao
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                CommonExceptions.UserIdDoesNotExist,
+                CompositeFormat.Parse(CommonExceptions.UserIdDoesNotExist).Format,
                 userId);
 
             throw new UserDoesNotExistException(message);

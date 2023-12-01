@@ -20,6 +20,7 @@ namespace Hirameku.Common.Service;
 using FluentValidation;
 using Hirameku.Common.Service.Properties;
 using System.Globalization;
+using System.Text;
 
 public static class IPasswordValidatorExtensions
 {
@@ -29,15 +30,8 @@ public static class IPasswordValidatorExtensions
         ValidationContext<T> context,
         CancellationToken cancellationToken)
     {
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
-
-        if (context == null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(context);
 
         var result = await instance.Validate(password, cancellationToken).ConfigureAwait(false);
 
@@ -50,7 +44,7 @@ public static class IPasswordValidatorExtensions
                 PasswordValidationResult.TooLong => Exceptions.PasswordTooLong,
                 _ => throw new InvalidOperationException(string.Format(
                     CultureInfo.InvariantCulture,
-                    Exceptions.InvalidEnumValue,
+                    CompositeFormat.Parse(Exceptions.InvalidEnumValue).Format,
                     result,
                     typeof(PasswordValidationResult))),
             };

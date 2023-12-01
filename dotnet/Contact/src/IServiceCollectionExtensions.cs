@@ -28,15 +28,8 @@ public static class IServiceCollectionExtensions
         this IServiceCollection instance,
         IConfiguration configuration)
     {
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
-
-        if (configuration == null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
+        ArgumentNullException.ThrowIfNull(configuration);
 
         return instance.AddEmailConfiguration(configuration)
             .AddRecaptchaConfiguration(configuration);

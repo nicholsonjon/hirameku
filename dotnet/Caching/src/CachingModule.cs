@@ -26,7 +26,7 @@ using Microsoft.Extensions.Primitives;
 public class CachingModule : Module
 {
     private static readonly object LockObject = new();
-    private static ICacheClientFactory? cacheClientFactory;
+    private static CacheClientFactory? cacheClientFactory;
     private static IDisposable? changeTokenDisposable;
 
     public CachingModule()
@@ -64,6 +64,7 @@ public class CachingModule : Module
 
                 return cacheClientFactory;
             })
+            .As<ICacheClientFactory>()
             .ExternallyOwned();
         _ = builder.Register(c => c.Resolve<ICacheClientFactory>().CreateClient());
         _ = builder.RegisterType<CachedValueDao>().As<ICachedValueDao>();

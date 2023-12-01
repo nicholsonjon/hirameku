@@ -33,10 +33,7 @@ public static class LoggerExtensions
         [CallerLineNumber] int lineNumber = 0,
         T? data = default)
     {
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
+        ArgumentNullException.ThrowIfNull(logger);
 
         if (logger.IsDebugEnabled)
         {
@@ -65,10 +62,7 @@ public static class LoggerExtensions
         [CallerLineNumber] int lineNumber = 0,
         T? data = default)
     {
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
+        ArgumentNullException.ThrowIfNull(logger);
 
         if (logger.IsErrorEnabled)
         {
@@ -97,10 +91,7 @@ public static class LoggerExtensions
         [CallerLineNumber] int lineNumber = 0,
         T? data = default)
     {
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
+        ArgumentNullException.ThrowIfNull(logger);
 
         if (logger.IsInfoEnabled)
         {
@@ -129,10 +120,7 @@ public static class LoggerExtensions
         [CallerLineNumber] int lineNumber = 0,
         T? data = default)
     {
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
+        ArgumentNullException.ThrowIfNull(logger);
 
         if (logger.IsTraceEnabled)
         {
@@ -161,10 +149,7 @@ public static class LoggerExtensions
         [CallerLineNumber] int lineNumber = 0,
         T? data = default)
     {
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
+        ArgumentNullException.ThrowIfNull(logger);
 
         if (logger.IsWarnEnabled)
         {

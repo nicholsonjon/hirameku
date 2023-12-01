@@ -21,6 +21,7 @@ using Hirameku.Common;
 using Hirameku.Common.Properties;
 using NLog;
 using System.Globalization;
+using System.Text;
 using RecaptchaExceptions = Hirameku.Recaptcha.Properties.Exceptions;
 
 public static class IRecaptchaResponseValidatorExtensions
@@ -41,10 +42,7 @@ public static class IRecaptchaResponseValidatorExtensions
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
 
         var result = await instance.Validate(recaptchaResponse, action, remoteIP, cancellationToken)
             .ConfigureAwait(false);
@@ -53,7 +51,7 @@ public static class IRecaptchaResponseValidatorExtensions
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                RecaptchaExceptions.RecaptchaVerificationFailed,
+                CompositeFormat.Parse(RecaptchaExceptions.RecaptchaVerificationFailed).Format,
                 result);
 
             throw new RecaptchaVerificationFailedException(message);

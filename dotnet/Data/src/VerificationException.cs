@@ -17,8 +17,6 @@
 
 namespace Hirameku.Data;
 
-using System.Runtime.Serialization;
-
 [Serializable]
 public class VerificationException : Exception
 {
@@ -33,11 +31,6 @@ public class VerificationException : Exception
 
     public VerificationException(string message, Exception innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected VerificationException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }

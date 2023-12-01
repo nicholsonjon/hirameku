@@ -60,15 +60,8 @@ public static class IntegrationTestUtilities
         where TService : notnull
         where TOptions : class
     {
-        if (initializeConfigFile is null)
-        {
-            throw new ArgumentNullException(nameof(initializeConfigFile));
-        }
-
-        if (modifyConfigFile is null)
-        {
-            throw new ArgumentNullException(nameof(modifyConfigFile));
-        }
+        ArgumentNullException.ThrowIfNull(initializeConfigFile);
+        ArgumentNullException.ThrowIfNull(modifyConfigFile);
 
         await initializeConfigFile().ConfigureAwait(false);
 
@@ -81,7 +74,7 @@ public static class IntegrationTestUtilities
         var mockChangeToken = new Mock<IChangeToken>();
         Action<object>? changeCallback = default;
         object? state = default;
-        _ = mockChangeToken.Setup(m => m.RegisterChangeCallback(It.IsAny<Action<object>>(), It.IsAny<object>()))
+        _ = mockChangeToken.Setup(m => m.RegisterChangeCallback(It.IsAny<Action<object?>>(), It.IsAny<object>()))
             .Callback<Action<object>, object>(
                 (cb, s) =>
                 {

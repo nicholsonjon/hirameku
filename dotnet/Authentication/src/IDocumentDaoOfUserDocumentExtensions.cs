@@ -24,6 +24,7 @@ using NLog;
 using NLog.Fluent;
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Text;
 using CommonExceptions = Hirameku.Common.Properties.Exceptions;
 using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
@@ -38,10 +39,7 @@ public static class IDocumentDaoOfUserDocumentExtensions
     {
         Log.Debug("Fetching User document", data: new { parameters = new { instance, userId, cancellationToken } });
 
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
 
         var user = await GetUser(instance, u => u.Id == userId, cancellationToken).ConfigureAwait(false);
 
@@ -49,7 +47,7 @@ public static class IDocumentDaoOfUserDocumentExtensions
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                CommonExceptions.UserIdDoesNotExist,
+                CompositeFormat.Parse(CommonExceptions.UserIdDoesNotExist).Format,
                 userId);
 
             throw new UserDoesNotExistException(message);
@@ -67,10 +65,7 @@ public static class IDocumentDaoOfUserDocumentExtensions
     {
         Log.Debug("Fetching User document", data: new { parameters = new { instance, userName, cancellationToken } });
 
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
 
         var user = await GetUser(instance, u => u.UserName == userName, cancellationToken).ConfigureAwait(false);
 
@@ -78,7 +73,7 @@ public static class IDocumentDaoOfUserDocumentExtensions
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                CommonExceptions.UserNameDoesNotExist,
+                CompositeFormat.Parse(CommonExceptions.UserNameDoesNotExist).Format,
                 userName);
 
             throw new UserDoesNotExistException(message);
@@ -100,7 +95,7 @@ public static class IDocumentDaoOfUserDocumentExtensions
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                ServiceExceptions.UserSuspended,
+                CompositeFormat.Parse(ServiceExceptions.UserSuspended).Format,
                 user.Id);
 
             throw new UserSuspendedException(message);

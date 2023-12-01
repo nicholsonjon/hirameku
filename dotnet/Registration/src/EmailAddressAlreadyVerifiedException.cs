@@ -17,8 +17,6 @@
 
 namespace Hirameku.Registration;
 
-using System.Runtime.Serialization;
-
 [Serializable]
 public class EmailAddressAlreadyVerifiedException : Exception
 {
@@ -33,11 +31,6 @@ public class EmailAddressAlreadyVerifiedException : Exception
 
     public EmailAddressAlreadyVerifiedException(string? message, Exception? innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected EmailAddressAlreadyVerifiedException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }

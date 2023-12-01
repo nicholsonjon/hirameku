@@ -103,10 +103,7 @@ public abstract class HiramekuController : ControllerBase
             .Property(LogProperties.Parameters, parameters)
             .Log();
 
-        if (action == null)
-        {
-            throw new ArgumentNullException(nameof(action));
-        }
+        ArgumentNullException.ThrowIfNull(action);
 
         IActionResult result;
 

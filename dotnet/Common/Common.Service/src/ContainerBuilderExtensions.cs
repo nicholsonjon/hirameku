@@ -26,10 +26,7 @@ public static class ContainerBuilderExtensions
     public static IRegistrationBuilder<IMapper, SimpleActivatorData, SingleRegistrationStyle> RegisterMapper(
         this ContainerBuilder builder)
     {
-        if (builder == null)
-        {
-            throw new ArgumentNullException(nameof(builder));
-        }
+        ArgumentNullException.ThrowIfNull(builder);
 
         return builder.Register(
             ctx =>

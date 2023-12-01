@@ -25,6 +25,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using RecaptchaExceptions = Hirameku.Recaptcha.Properties.Exceptions;
@@ -106,7 +107,7 @@ public class RecaptchaClient : IRecaptchaClient
             {
                 var message = string.Format(
                     CultureInfo.InvariantCulture,
-                    RecaptchaExceptions.UnexpectedRecaptchaError,
+                    CompositeFormat.Parse(RecaptchaExceptions.UnexpectedRecaptchaError).Format,
                     string.Join(", ", UnexpectedErrorCodes));
 
                 throw new InvalidOperationException(message);

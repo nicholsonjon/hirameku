@@ -17,8 +17,6 @@
 
 namespace Hirameku.Recaptcha;
 
-using System.Runtime.Serialization;
-
 [Serializable]
 public class RecaptchaVerificationFailedException : Exception
 {
@@ -33,11 +31,6 @@ public class RecaptchaVerificationFailedException : Exception
 
     public RecaptchaVerificationFailedException(string? message, Exception? innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected RecaptchaVerificationFailedException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }

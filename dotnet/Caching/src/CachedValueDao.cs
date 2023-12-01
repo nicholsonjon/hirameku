@@ -22,6 +22,7 @@ using Hirameku.Common.Properties;
 using Hirameku.Data;
 using NLog;
 using System.Globalization;
+using System.Text;
 using System.Threading;
 
 public class CachedValueDao : ICachedValueDao
@@ -59,7 +60,7 @@ public class CachedValueDao : ICachedValueDao
             {
                 var message = string.Format(
                     CultureInfo.CurrentCulture,
-                    Exceptions.UserIdDoesNotExist,
+                    CompositeFormat.Parse(Exceptions.UserIdDoesNotExist).Format,
                     userId);
 
                 throw new UserDoesNotExistException(message);

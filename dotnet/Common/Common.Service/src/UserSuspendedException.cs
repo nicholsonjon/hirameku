@@ -17,8 +17,6 @@
 
 namespace Hirameku.Common.Service;
 
-using System.Runtime.Serialization;
-
 [Serializable]
 public class UserSuspendedException : Exception
 {
@@ -33,11 +31,6 @@ public class UserSuspendedException : Exception
 
     public UserSuspendedException(string? message, Exception? innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected UserSuspendedException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }

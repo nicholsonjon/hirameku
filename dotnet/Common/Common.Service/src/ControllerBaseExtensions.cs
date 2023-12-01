@@ -9,10 +9,7 @@ public static class ControllerBaseExtensions
 {
     public static IActionResult ValidationProblem(this ControllerBase controller, ValidationException validationException)
     {
-        if (validationException == null)
-        {
-            throw new ArgumentNullException(nameof(validationException));
-        }
+        ArgumentNullException.ThrowIfNull(validationException);
 
         var problem = new ValidationProblemDetails()
         {

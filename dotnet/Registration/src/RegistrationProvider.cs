@@ -29,11 +29,12 @@ using Hirameku.Recaptcha;
 using Microsoft.Extensions.Options;
 using NLog;
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using EmailExceptions = Hirameku.Email.Properties.Exceptions;
 using RegistrationExceptions = Hirameku.Registration.Properties.Exceptions;
 
-public class RegistrationProvider : IRegistrationProvider
+public partial class RegistrationProvider : IRegistrationProvider
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
@@ -100,7 +101,7 @@ public class RegistrationProvider : IRegistrationProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        var isUserNameAvailable = Regex.IsMatch(userName, Regexes.UserName);
+        var isUserNameAvailable = GeneratedUserNameRegex().IsMatch(userName);
 
         if (isUserNameAvailable)
         {
@@ -129,10 +130,7 @@ public class RegistrationProvider : IRegistrationProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (model == null)
-        {
-            throw new ArgumentNullException(nameof(model));
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         await this.RegisterModelValidator.ValidateAndThrowAsync(model, cancellationToken).ConfigureAwait(false);
         await this.RecaptchaResponseValidator.ValidateAndThrow(
@@ -241,10 +239,7 @@ public class RegistrationProvider : IRegistrationProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (model == null)
-        {
-            throw new ArgumentNullException(nameof(model));
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         await this.ResendVerificationEmailModelValidator.ValidateAndThrowAsync(model, cancellationToken)
             .ConfigureAwait(false);
@@ -348,6 +343,9 @@ public class RegistrationProvider : IRegistrationProvider
         return emailResult;
     }
 
+    [GeneratedRegex(Regexes.UserName)]
+    private static partial Regex GeneratedUserNameRegex();
+
     private async Task ValidateIsNotDuplicateRegistration(RegisterModel model, CancellationToken cancellationToken)
     {
         var userName = model.UserName;
@@ -367,7 +365,7 @@ public class RegistrationProvider : IRegistrationProvider
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                RegistrationExceptions.DuplicateRegistration,
+                CompositeFormat.Parse(RegistrationExceptions.DuplicateRegistration).Format,
                 userName,
                 emailAddress);
 

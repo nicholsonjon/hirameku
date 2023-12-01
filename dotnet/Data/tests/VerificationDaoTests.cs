@@ -23,13 +23,14 @@ using Hirameku.TestTools;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Moq;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
 
 [TestClass]
-public class VerificationDaoTests
+public partial class VerificationDaoTests
 {
     private const string EmailAddress = nameof(EmailAddress);
     private const string Name = nameof(Name);
@@ -311,14 +312,17 @@ public class VerificationDaoTests
         var pepper = verificationToken.Pepper;
 
         Assert.AreEqual(pepper.Length, TestUtilities.CalculateBase64Length(SaltAndPepperLength));
-        Assert.IsTrue(Regex.IsMatch(pepper, Regexes.Base64String));
+        Assert.IsTrue(GeneratedBase64StringRegex().IsMatch(pepper));
 
         var token = verificationToken.Token;
-        using var hash = HashAlgorithm.Create(HashName.Name!);
+        using var hash = CryptoConfig.CreateFromName(HashName.Name!) as HashAlgorithm;
 
         Assert.AreEqual(token.Length, TestUtilities.CalculateBase64Length(hash!.HashSize / 8));
-        Assert.IsTrue(Regex.IsMatch(token, Regexes.Base64String));
+        Assert.IsTrue(GeneratedBase64StringRegex().IsMatch(token));
     }
+
+    [GeneratedRegex(Regexes.Base64String)]
+    private static partial Regex GeneratedBase64StringRegex();
 
     private static Mock<IMongoCollection<UserDocument>> GetMockUserCollection(
         UserStatus userStatus = UserStatus.EmailNotVerified,
@@ -349,6 +353,7 @@ public class VerificationDaoTests
         return mockCollection;
     }
 
+    [SuppressMessage("StyleCop.CSharp.SpacingRules", "SA1010:Opening square brackets should be spaced correctly", Justification = "StyleCop has not caught up with the new C# 12 syntax")]
     private static Mock<IMongoCollection<Verification>> GetMockVerificationCollection(
         DateTime now,
         Verification? verification = default,
@@ -359,7 +364,7 @@ public class VerificationDaoTests
         _ = mockCursor.Setup(m => m.MoveNextAsync(cancellationToken))
             .ReturnsAsync(true);
         _ = mockCursor.Setup(m => m.Current)
-            .Returns(verification != null ? new List<Verification>() { verification } : new List<Verification>());
+            .Returns(verification != null ? [verification] : []);
         _ = mockCursor.Setup(m => m.Dispose());
 
         var mockVerificationCollection = new Mock<IMongoCollection<Verification>>();

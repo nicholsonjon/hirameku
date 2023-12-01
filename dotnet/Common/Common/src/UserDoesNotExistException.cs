@@ -17,8 +17,6 @@
 
 namespace Hirameku.Common;
 
-using System.Runtime.Serialization;
-
 [Serializable]
 public class UserDoesNotExistException : Exception
 {
@@ -33,11 +31,6 @@ public class UserDoesNotExistException : Exception
 
     public UserDoesNotExistException(string message, Exception innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected UserDoesNotExistException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }

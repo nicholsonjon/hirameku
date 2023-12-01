@@ -183,7 +183,7 @@ public class CacheClientTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
 
-        cancellationTokenSource.Cancel();
+        await cancellationTokenSource.CancelAsync().ConfigureAwait(false);
         await RunGetValueTest(cancellationToken).ConfigureAwait(false);
 
         Assert.Fail(nameof(OperationCanceledException) + " expected");
@@ -295,7 +295,7 @@ public class CacheClientTests
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
 
-        cancellationTokenSource.Cancel();
+        await cancellationTokenSource.CancelAsync().ConfigureAwait(false);
         await RunSetValueTest(cancellationToken).ConfigureAwait(false);
 
         Assert.Fail(nameof(OperationCanceledException) + " expected");

@@ -28,6 +28,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NLog;
 using System.Globalization;
+using System.Text;
 using CommonExceptions = Hirameku.Common.Properties.Exceptions;
 using UserExceptions = Hirameku.User.Properties.Exceptions;
 
@@ -96,10 +97,7 @@ public class UserProvider : IUserProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (authenticatedModel is null)
-        {
-            throw new ArgumentNullException(nameof(authenticatedModel));
-        }
+        ArgumentNullException.ThrowIfNull(authenticatedModel);
 
         await this.ChangePasswordModelValidator.ValidateAndThrowAsync(authenticatedModel, cancellationToken).ConfigureAwait(false);
 
@@ -111,7 +109,7 @@ public class UserProvider : IUserProvider
         {
             var message = string.Format(
                 CultureInfo.CurrentCulture,
-                CommonExceptions.UserIdDoesNotExist,
+                CompositeFormat.Parse(CommonExceptions.UserIdDoesNotExist).Format,
                 userId);
 
             throw new UserDoesNotExistException(message);
@@ -168,10 +166,7 @@ public class UserProvider : IUserProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (authenticatedModel is null)
-        {
-            throw new ArgumentNullException(nameof(authenticatedModel));
-        }
+        ArgumentNullException.ThrowIfNull(authenticatedModel);
 
         var userId = authenticatedModel.User.GetUserId();
 
@@ -179,7 +174,7 @@ public class UserProvider : IUserProvider
         {
             var message = string.Format(
                 CultureInfo.CurrentCulture,
-                UserExceptions.MissingClaim,
+                CompositeFormat.Parse(UserExceptions.MissingClaim).Format,
                 userId);
 
             throw new ArgumentException(message, nameof(authenticatedModel));
@@ -202,10 +197,7 @@ public class UserProvider : IUserProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (authenticatedModel is null)
-        {
-            throw new ArgumentNullException(nameof(authenticatedModel));
-        }
+        ArgumentNullException.ThrowIfNull(authenticatedModel);
 
         var userId = authenticatedModel.User.GetUserId();
 
@@ -213,7 +205,7 @@ public class UserProvider : IUserProvider
         {
             var message = string.Format(
                 CultureInfo.CurrentCulture,
-                UserExceptions.MissingClaim,
+                CompositeFormat.Parse(UserExceptions.MissingClaim).Format,
                 userId);
 
             throw new ArgumentException(message, nameof(authenticatedModel));
@@ -238,10 +230,7 @@ public class UserProvider : IUserProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (authenticatedModel is null)
-        {
-            throw new ArgumentNullException(nameof(authenticatedModel));
-        }
+        ArgumentNullException.ThrowIfNull(authenticatedModel);
 
         await this.UpdateEmailAddressModelValidator.ValidateAndThrowAsync(authenticatedModel, cancellationToken)
             .ConfigureAwait(false);
@@ -254,7 +243,7 @@ public class UserProvider : IUserProvider
         {
             var message = string.Format(
                 CultureInfo.CurrentCulture,
-                Exceptions.UserIdDoesNotExist,
+                CompositeFormat.Parse(CommonExceptions.UserIdDoesNotExist).Format,
                 userId);
 
             throw new UserDoesNotExistException(message);
@@ -305,10 +294,7 @@ public class UserProvider : IUserProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (authenticatedModel is null)
-        {
-            throw new ArgumentNullException(nameof(authenticatedModel));
-        }
+        ArgumentNullException.ThrowIfNull(authenticatedModel);
 
         await this.UpdateNameModelValidator.ValidateAndThrowAsync(authenticatedModel, cancellationToken)
             .ConfigureAwait(false);
@@ -321,7 +307,7 @@ public class UserProvider : IUserProvider
         {
             var message = string.Format(
                 CultureInfo.CurrentCulture,
-                CommonExceptions.UserIdDoesNotExist,
+                CompositeFormat.Parse(CommonExceptions.UserIdDoesNotExist).Format,
                 userId);
 
             throw new UserDoesNotExistException(message);
@@ -353,10 +339,7 @@ public class UserProvider : IUserProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (authenticatedModel is null)
-        {
-            throw new ArgumentNullException(nameof(authenticatedModel));
-        }
+        ArgumentNullException.ThrowIfNull(authenticatedModel);
 
         await this.UpdateUserNameModelValidator.ValidateAndThrowAsync(authenticatedModel, cancellationToken)
             .ConfigureAwait(false);
@@ -369,7 +352,7 @@ public class UserProvider : IUserProvider
         {
             var message = string.Format(
                 CultureInfo.CurrentCulture,
-                CommonExceptions.UserIdDoesNotExist,
+                CompositeFormat.Parse(CommonExceptions.UserIdDoesNotExist).Format,
                 userId);
 
             throw new UserDoesNotExistException(message);

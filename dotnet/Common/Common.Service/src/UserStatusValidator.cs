@@ -21,6 +21,7 @@ using Hirameku.Caching;
 using Hirameku.Common.Service.Properties;
 using System.Globalization;
 using System.Security.Claims;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,7 +42,7 @@ public class UserStatusValidator : IUserStatusValidator
         {
             var message = string.Format(
                 CultureInfo.CurrentCulture,
-                Exceptions.MissingRequiredClaim,
+                CompositeFormat.Parse(Exceptions.MissingRequiredClaim).Format,
                 PrivateClaims.UserId);
 
             throw new ArgumentException(message, nameof(user));
@@ -53,7 +54,7 @@ public class UserStatusValidator : IUserStatusValidator
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                Exceptions.EmailAddressNotVerified,
+                CompositeFormat.Parse(Exceptions.EmailAddressNotVerified).Format,
                 userId);
 
             throw new EmailAddressNotVerifiedException(message);
@@ -63,7 +64,7 @@ public class UserStatusValidator : IUserStatusValidator
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                Exceptions.UserMustChangePassword,
+                CompositeFormat.Parse(Exceptions.UserMustChangePassword).Format,
                 userId);
 
             throw new UserMustChangePasswordException(message);
@@ -72,7 +73,7 @@ public class UserStatusValidator : IUserStatusValidator
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                Exceptions.UserSuspended,
+                CompositeFormat.Parse(Exceptions.UserSuspended).Format,
                 userId);
 
             throw new UserSuspendedException(message);

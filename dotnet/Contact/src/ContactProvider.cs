@@ -57,10 +57,7 @@ public class ContactProvider : IContactProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (model == null)
-        {
-            throw new ArgumentNullException(nameof(model));
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         await this.SendFeedbackModelValidator.ValidateAndThrowAsync(model, cancellationToken).ConfigureAwait(false);
         await this.RecaptchaResponseValidator.ValidateAndThrow(

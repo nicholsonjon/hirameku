@@ -26,6 +26,7 @@ using Microsoft.Extensions.Options;
 using MimeKit;
 using Moq;
 using System.Globalization;
+using System.Text;
 using System.Threading;
 
 [TestClass]
@@ -202,7 +203,10 @@ public class EmailerTests
             "html" => string.Format(InvariantCulture, template.Key, template.Value),
             "text" => string.Format(InvariantCulture, template.Key, template.Value),
             _ => throw new ArgumentException(
-                string.Format(InvariantCulture, Exceptions.UnsupportedEmailBodyType, type),
+                string.Format(
+                    InvariantCulture,
+                    CompositeFormat.Parse(Exceptions.UnsupportedEmailBodyType).Format,
+                    type),
                 nameof(type)),
         };
 
@@ -309,7 +313,7 @@ public class EmailerTests
     {
         var subject = Resources.ForgotPasswordSubject;
         var validityText = doesLinkExpire
-            ? string.Format(InvariantCulture, Resources.ValidityPeriodText, "1 day")
+            ? string.Format(InvariantCulture, CompositeFormat.Parse(Resources.ValidityPeriodText).Format, "1 day")
             : string.Empty;
         var htmlParameters = new KeyValuePair<string, object[]>(
             Resources.ForgotPasswordHtml.ReplaceLineEndings(),
@@ -333,7 +337,7 @@ public class EmailerTests
     {
         var subject = Resources.VerifyEmailSubject;
         var validityText = doesLinkExpire
-            ? string.Format(InvariantCulture, Resources.ValidityPeriodText, "1 day")
+            ? string.Format(InvariantCulture, CompositeFormat.Parse(Resources.ValidityPeriodText).Format, "1 day")
             : string.Empty;
         var htmlParameters = new KeyValuePair<string, object[]>(
             Resources.VerifyEmailHtml.ReplaceLineEndings(),

@@ -44,23 +44,16 @@ public class VerificationToken
         HashAlgorithmName hashAlgorithmName,
         CancellationToken cancellationToken = default)
     {
-        if (verification == null)
-        {
-            throw new ArgumentNullException(nameof(verification));
-        }
+        ArgumentNullException.ThrowIfNull(verification);
+        ArgumentNullException.ThrowIfNull(pepper);
 
-        if (pepper == null)
-        {
-            throw new ArgumentNullException(nameof(pepper));
-        }
-
-        using var hashAlgorithm = HashAlgorithm.Create(hashAlgorithmName.Name!);
+        using var hashAlgorithm = CryptoConfig.CreateFromName(hashAlgorithmName.Name!) as HashAlgorithm;
 
         if (hashAlgorithm == null)
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                Exceptions.InvalidHashAlgorithm,
+                CompositeFormat.Parse(Exceptions.InvalidHashAlgorithm).Format,
                 hashAlgorithmName);
 
             throw new InvalidOperationException(message);

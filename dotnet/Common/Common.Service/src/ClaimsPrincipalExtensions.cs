@@ -23,10 +23,7 @@ public static class ClaimsPrincipalExtensions
 {
     public static string? GetUserId(this ClaimsPrincipal instance)
     {
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
 
         return GetClaimValue(instance, PrivateClaims.UserId);
     }

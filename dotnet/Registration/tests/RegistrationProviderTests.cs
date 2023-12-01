@@ -239,11 +239,7 @@ public class RegistrationProviderTests
                 (f, t) =>
                 {
                     TestUtilities.AssertExpressionFilter(f, document);
-
-                    if (t.IsCancellationRequested)
-                    {
-                        throw new OperationCanceledException();
-                    }
+                    t.ThrowIfCancellationRequested();
                 })
             .ReturnsAsync(document);
         var target = GetTarget(mockRecaptchaResponseValidator: mockRecaptchaClient, mockUserDao: mockUserDao);
@@ -266,14 +262,7 @@ public class RegistrationProviderTests
         _ = mockUserDao.Setup(m => m.Fetch(It.IsAny<Expression<Func<UserDocument, bool>>>(), cancellationToken))
             .ReturnsAsync(null as UserDocument);
         _ = mockUserDao.Setup(m => m.Save(It.IsAny<UserDocument>(), cancellationToken))
-            .Callback<UserDocument, CancellationToken>(
-                (f, t) =>
-                {
-                    if (t.IsCancellationRequested)
-                    {
-                        throw new OperationCanceledException();
-                    }
-                })
+            .Callback<UserDocument, CancellationToken>((f, t) => t.ThrowIfCancellationRequested())
             .ReturnsAsync(new SaveResult());
         var target = GetTarget(mockUserDao: mockUserDao);
 

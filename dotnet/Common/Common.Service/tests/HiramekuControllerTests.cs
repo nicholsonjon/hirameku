@@ -101,7 +101,7 @@ public class HiramekuControllerTests
         Assert.IsNotNull(genericMethod);
 
         Func<Task<IActionResult>> action = () => Task.FromResult(new OkResult() as IActionResult);
-        var task = genericMethod.Invoke(target, new object[] { new object(), action }) as Task<IActionResult>;
+        var task = genericMethod.Invoke(target, new object[] { new(), action }) as Task<IActionResult>;
 
         Assert.IsNotNull(task);
 
@@ -125,7 +125,7 @@ public class HiramekuControllerTests
 
         try
         {
-            var task = genericMethod.Invoke(target, new object[] { new object(), null! }) as Task;
+            var task = genericMethod.Invoke(target, new object[] { new(), null! }) as Task;
 
             await task!.ConfigureAwait(false);
         }
@@ -172,7 +172,7 @@ public class HiramekuControllerTests
         return mockAccessor;
     }
 
-    private static HiramekuController GetTarget(Mock<IHttpContextAccessor>? mockContextAccessor = default)
+    private static TestHiramekuController GetTarget(Mock<IHttpContextAccessor>? mockContextAccessor = default)
     {
         return new TestHiramekuController(mockContextAccessor?.Object ?? Mock.Of<IHttpContextAccessor>());
     }
@@ -191,7 +191,7 @@ public class HiramekuControllerTests
         Assert.IsNotNull(genericMethod);
 
         Func<ClaimsPrincipal, Task<IActionResult>> action = _ => Task.FromResult(new OkResult() as IActionResult);
-        var task = genericMethod.Invoke(target, new object[] { new object(), action }) as Task<IActionResult>;
+        var task = genericMethod.Invoke(target, new object[] { new(), action }) as Task<IActionResult>;
 
         Assert.IsNotNull(task);
 

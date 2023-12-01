@@ -24,6 +24,7 @@ using Hirameku.Registration.Properties;
 using NLog;
 using NLog.Fluent;
 using System.Globalization;
+using System.Text;
 using CommonExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
 public static class IDocumentDaoOfUserDocumentExtensions
@@ -37,10 +38,7 @@ public static class IDocumentDaoOfUserDocumentExtensions
     {
         Log.Debug("Fetching User document", data: new { instance, emailAddress, cancellationToken });
 
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
 
         return GetUser(instance, u => u.EmailAddress, emailAddress, cancellationToken);
     }
@@ -52,10 +50,7 @@ public static class IDocumentDaoOfUserDocumentExtensions
     {
         Log.Debug("Fetching User document", data: new { instance, userName, cancellationToken });
 
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
+        ArgumentNullException.ThrowIfNull(instance);
 
         return GetUser(instance, u => u.UserName, userName, cancellationToken);
     }
@@ -72,7 +67,7 @@ public static class IDocumentDaoOfUserDocumentExtensions
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                Exceptions.UserDoesNotExist,
+                CompositeFormat.Parse(Exceptions.UserDoesNotExist).Format,
                 value);
 
             throw new UserDoesNotExistException(message);
@@ -81,7 +76,7 @@ public static class IDocumentDaoOfUserDocumentExtensions
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                CommonExceptions.UserSuspended,
+                CompositeFormat.Parse(CommonExceptions.UserSuspended).Format,
                 user.UserName);
 
             throw new UserSuspendedException(message);

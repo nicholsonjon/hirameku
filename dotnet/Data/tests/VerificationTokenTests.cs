@@ -81,8 +81,8 @@ public class VerificationTokenTests
 
         _ = stream.Seek(0, SeekOrigin.Begin);
 
-        using var hashAlgorithm = HashAlgorithm.Create(HashName.Name!)!;
-        var hash = await hashAlgorithm.ComputeHashAsync(stream).ConfigureAwait(false);
+        using var hashAlgorithm = CryptoConfig.CreateFromName(HashName.Name!) as HashAlgorithm;
+        var hash = await hashAlgorithm!.ComputeHashAsync(stream).ConfigureAwait(false);
 
         return Convert.ToBase64String(hash);
     }

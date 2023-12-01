@@ -30,6 +30,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NLog;
 using System.Globalization;
+using System.Text;
 using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
 public class AuthenticationProvider : IAuthenticationProvider
@@ -125,10 +126,7 @@ public class AuthenticationProvider : IAuthenticationProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (data == null)
-        {
-            throw new ArgumentNullException(nameof(data));
-        }
+        ArgumentNullException.ThrowIfNull(data);
 
         var model = data.Model;
 
@@ -180,10 +178,7 @@ public class AuthenticationProvider : IAuthenticationProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (data == null)
-        {
-            throw new ArgumentNullException(nameof(data));
-        }
+        ArgumentNullException.ThrowIfNull(data);
 
         var model = data.Model;
 
@@ -222,10 +217,7 @@ public class AuthenticationProvider : IAuthenticationProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (model == null)
-        {
-            throw new ArgumentNullException(nameof(model));
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         await this.ResetPasswordModelValidator.ValidateAndThrowAsync(model, cancellationToken)
             .ConfigureAwait(false);
@@ -283,10 +275,7 @@ public class AuthenticationProvider : IAuthenticationProvider
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        if (model == null)
-        {
-            throw new ArgumentNullException(nameof(model));
-        }
+        ArgumentNullException.ThrowIfNull(model);
 
         await this.SendPasswordResetModelValidator.ValidateAndThrowAsync(model, cancellationToken)
             .ConfigureAwait(false);
@@ -305,7 +294,7 @@ public class AuthenticationProvider : IAuthenticationProvider
         {
             var message = string.Format(
                 CultureInfo.CurrentCulture,
-                ServiceExceptions.EmailAddressNotVerified,
+                CompositeFormat.Parse(ServiceExceptions.EmailAddressNotVerified).Format,
                 userId);
 
             throw new EmailAddressNotVerifiedException(message);
@@ -345,7 +334,7 @@ public class AuthenticationProvider : IAuthenticationProvider
         };
     }
 
-    private static object RedactSignInResult(SignInResult result)
+    private static SignInResult RedactSignInResult(SignInResult result)
     {
         var persistentToken = result.PersistentToken;
 

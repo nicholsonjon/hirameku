@@ -20,6 +20,7 @@ namespace Hirameku.Data;
 using Hirameku.Data.Properties;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Globalization;
+using System.Text;
 
 /// <summary>
 /// This class represents a particular version of the PBKDF2 function, defining the parameters used to generate the
@@ -120,7 +121,7 @@ public class PasswordHashVersion
 
                 var message = string.Format(
                     CultureInfo.InvariantCulture,
-                    Exceptions.InvalidPasswordHashVersion,
+                    CompositeFormat.Parse(Exceptions.InvalidPasswordHashVersion).Format,
                     name);
 
                 throw new ArgumentException(message, nameof(name));

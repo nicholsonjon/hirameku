@@ -44,10 +44,7 @@ public class SecurityTokenIssuer : ISecurityTokenIssuer
             "Entering method",
             data: new { parameters = new { userId, user, validTo } });
 
-        if (user == null)
-        {
-            throw new ArgumentNullException(nameof(user));
-        }
+        ArgumentNullException.ThrowIfNull(user);
 
         var options = this.Options.Value;
         var now = this.DateTimeProvider.UtcNow;

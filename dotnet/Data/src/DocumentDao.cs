@@ -91,10 +91,7 @@ public class DocumentDao<TDocument> : IDocumentDao<TDocument>
     {
         Log.Trace("Entering method", data: new { document, cancellationToken });
 
-        if (document == null)
-        {
-            throw new ArgumentNullException(nameof(document));
-        }
+        ArgumentNullException.ThrowIfNull(document);
 
         await this.Validator.ValidateAndThrowAsync(document, cancellationToken).ConfigureAwait(false);
 

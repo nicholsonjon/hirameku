@@ -193,7 +193,7 @@ public class CardDocumentValidatorTests
         };
     }
 
-    private static IEnumerable<Meaning> GetFakeMeanings(int length = 1)
+    private static List<Meaning> GetFakeMeanings(int length = 1)
     {
         var meaningFaker = new Faker<Meaning>()
             .RuleFor(m => m.Example, string.Empty)

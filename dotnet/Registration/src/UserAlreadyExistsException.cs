@@ -17,8 +17,6 @@
 
 namespace Hirameku.Registration;
 
-using System.Runtime.Serialization;
-
 [Serializable]
 public class UserAlreadyExistsException : Exception
 {
@@ -33,11 +31,6 @@ public class UserAlreadyExistsException : Exception
 
     public UserAlreadyExistsException(string? message, Exception? innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected UserAlreadyExistsException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }

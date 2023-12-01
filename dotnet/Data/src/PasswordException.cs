@@ -17,8 +17,6 @@
 
 namespace Hirameku.Data;
 
-using System.Runtime.Serialization;
-
 [Serializable]
 public class PasswordException : Exception
 {
@@ -33,11 +31,6 @@ public class PasswordException : Exception
 
     public PasswordException(string message, Exception innerException)
         : base(message, innerException)
-    {
-    }
-
-    protected PasswordException(SerializationInfo info, StreamingContext context)
-        : base(info, context)
     {
     }
 }

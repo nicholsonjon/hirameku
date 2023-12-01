@@ -75,7 +75,7 @@ public class AuthenticationProfile : Profile
             _ => throw new InvalidOperationException(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    CommonExceptions.InvalidEnumValue,
+                    CompositeFormat.Parse(CommonExceptions.InvalidEnumValue).Format,
                     passwordResult,
                     typeof(PasswordVerificationResult))),
         };
@@ -91,7 +91,7 @@ public class AuthenticationProfile : Profile
             _ => throw new InvalidOperationException(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    CommonExceptions.InvalidEnumValue,
+                    CompositeFormat.Parse(CommonExceptions.InvalidEnumValue).Format,
                     result,
                     typeof(PersistentTokenVerificationResult))),
         };
@@ -107,7 +107,7 @@ public class AuthenticationProfile : Profile
             _ => throw new InvalidOperationException(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    CommonExceptions.InvalidEnumValue,
+                    CompositeFormat.Parse(CommonExceptions.InvalidEnumValue).Format,
                     result,
                     typeof(VerificationTokenVerificationResult))),
         };

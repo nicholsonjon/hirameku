@@ -16,6 +16,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 namespace Hirameku.TestTools;
+
 using Hirameku.Common.Service;
 using Hirameku.Data;
 using Microsoft.AspNetCore.Authentication;
@@ -49,10 +50,7 @@ public static class TestUtilities
 
     public static void AssertExpressionFilter<TDocument>(FilterDefinition<TDocument> filter, TDocument document)
     {
-        if (filter == null)
-        {
-            throw new ArgumentNullException(nameof(filter));
-        }
+        ArgumentNullException.ThrowIfNull(filter);
 
         Assert.IsInstanceOfType(filter, typeof(ExpressionFilterDefinition<TDocument>));
         AssertExpressionFilter(((ExpressionFilterDefinition<TDocument>)filter).Expression, document);
@@ -60,10 +58,7 @@ public static class TestUtilities
 
     public static void AssertExpressionFilter<TDocument>(Expression<Func<TDocument, bool>> filter, TDocument document)
     {
-        if (filter == null)
-        {
-            throw new ArgumentNullException(nameof(filter));
-        }
+        ArgumentNullException.ThrowIfNull(filter);
 
         var expression = filter.Compile();
         Assert.IsTrue(expression(document));
@@ -73,10 +68,7 @@ public static class TestUtilities
         Expression<Func<TMember, TValue>> expression,
         string memberName)
     {
-        if (expression == null)
-        {
-            throw new ArgumentNullException(nameof(expression));
-        }
+        ArgumentNullException.ThrowIfNull(expression);
 
         var lambda = expression as LambdaExpression;
         var body = lambda.Body as MemberExpression;
@@ -96,10 +88,7 @@ public static class TestUtilities
         TDocument document,
         TValue value)
     {
-        if (projection == null)
-        {
-            throw new ArgumentNullException(nameof(projection));
-        }
+        ArgumentNullException.ThrowIfNull(projection);
 
         var type = projection.GetType();
         var propertyValue = type?.GetProperty("Expression")?.GetValue(projection, null)
@@ -133,20 +122,9 @@ public static class TestUtilities
         string updatedFieldName,
         Action<TValue> assertValueAction)
     {
-        if (filter == null)
-        {
-            throw new ArgumentNullException(nameof(filter));
-        }
-
-        if (update == null)
-        {
-            throw new ArgumentNullException(nameof(update));
-        }
-
-        if (assertValueAction == null)
-        {
-            throw new ArgumentNullException(nameof(assertValueAction));
-        }
+        ArgumentNullException.ThrowIfNull(filter);
+        ArgumentNullException.ThrowIfNull(update);
+        ArgumentNullException.ThrowIfNull(assertValueAction);
 
         var type = update.GetType();
         var bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -265,17 +243,14 @@ public static class TestUtilities
 
     public static ClaimsPrincipal GetUser(string userId = UserId)
     {
-        var identity = new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, userId) }, "JwtBearer");
+        var identity = new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, userId) }, "JwtBearer");
 
         return new ClaimsPrincipal(identity);
     }
 
     public static bool IsUpdateFor<TDocument, TValue>(UpdateDefinition<TDocument> update, string updatedFieldName)
     {
-        if (update == null)
-        {
-            throw new ArgumentNullException(nameof(update));
-        }
+        ArgumentNullException.ThrowIfNull(update);
 
         var type = update.GetType();
         var bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic;

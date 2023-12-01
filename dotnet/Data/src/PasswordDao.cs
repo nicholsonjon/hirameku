@@ -23,6 +23,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using NLog;
 using System.Globalization;
+using System.Text;
 using System.Threading;
 using CommonExceptions = Hirameku.Common.Properties.Exceptions;
 
@@ -115,7 +116,7 @@ public class PasswordDao : IPasswordDao
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                CommonExceptions.UserIdDoesNotExist,
+                CompositeFormat.Parse(CommonExceptions.UserIdDoesNotExist).Format,
                 userId);
 
             throw new UserDoesNotExistException(message);
@@ -193,7 +194,7 @@ public class PasswordDao : IPasswordDao
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                CommonExceptions.UserIdDoesNotExist,
+                CompositeFormat.Parse(CommonExceptions.UserIdDoesNotExist).Format,
                 userId);
 
             throw new UserDoesNotExistException(message);

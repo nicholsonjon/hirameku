@@ -17,6 +17,7 @@
 
 namespace Hirameku.IdentityService;
 
+using Asp.Versioning;
 using Hirameku.Common;
 using Hirameku.Common.Service;
 using Hirameku.User;

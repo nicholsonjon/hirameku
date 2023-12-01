@@ -49,22 +49,20 @@ public class EmailTokenSerializer : IEmailTokenSerializer
         var options = this.Options.Value;
         var hashName = options.HashName;
         var pepperLength = options.PepperLength;
-        int tokenLength;
 
-        try
-        {
-            using var hashAlgorithm = HashAlgorithm.Create(hashName.Name!);
-            tokenLength = hashAlgorithm!.HashSize / 8;
-        }
-        catch (Exception ex)
+        using var hashAlgorithm = CryptoConfig.CreateFromName(hashName.Name!) as HashAlgorithm;
+
+        if (hashAlgorithm == null)
         {
             var message = string.Format(
                 CultureInfo.InvariantCulture,
-                Exceptions.InvalidHashAlgorithm,
+                CompositeFormat.Parse(Exceptions.InvalidHashAlgorithm).Format,
                 hashName.Name);
 
-            throw new InvalidOperationException(message, ex);
+            throw new InvalidOperationException(message);
         }
+
+        var tokenLength = hashAlgorithm!.HashSize / 8;
 
         if (bytes.Length <= pepperLength + tokenLength + 1)
         {
