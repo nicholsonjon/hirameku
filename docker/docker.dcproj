@@ -19,6 +19,7 @@
     <None Include="mongo.Dockerfile" />
     <None Include="nginx.conf" />
     <None Include="nginx.Dockerfile" />
+    <None Include="proxy.conf" />
   </ItemGroup>
   <Target Name="PostBuildEvent">
     <Exec Command="docker rmi $(docker images -f dangling=true -q)" />
