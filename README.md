@@ -6,14 +6,14 @@ Hirameku is a cloud-native, vendor-agnostic, serverless application for studying
 
 Hirameku is a [Jamstack](https://jamstack.org/) application that supports any capable host and API-compatible backend (cloud or on-prem). All development is done locally using the following:
 
-- [.NET >=6](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
-- [Latest NodeJS LTS release](https://nodejs.org/en/download)
-- [Astro >= 2.5](https://astro.build/)*
-- [React >= 18](https://react.dev/)
+- [.NET ~8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+- [NodeJS ~20](https://nodejs.org/en/download)
+- [Astro ~2.5](https://astro.build/)*
+- [React >=18](https://react.dev/)
 - [TypeScript >=5.0](https://www.typescriptlang.org/)
 - [Docker Desktop >=4](https://www.docker.com/products/docker-desktop/) (or Docker Engine)
-- [NGINX >= 1.25](https://nginx.org/)
-- [RabbitMQ >= 3.12*](https://www.rabbitmq.com/)
+- [NGINX ~1.25](https://nginx.org/)
+- [RabbitMQ ~3.12**](https://www.rabbitmq.com/)
 - [Redis ~6.0](https://redis.io/)
 - [MongoDB ~4.0](https://www.mongodb.com/)
 - [smtp4dev](https://github.com/rnwood/smtp4dev)
@@ -23,9 +23,9 @@ Hirameku is a [Jamstack](https://jamstack.org/) application that supports any ca
 
 > *Since [Astro requires `unsafe-inline`](https://docs.astro.build/en/guides/troubleshooting/#refused-to-execute-inline-script) (thus defeating much of the benefit of CSP), it will be replaced with an alternative. The intent was to use [NextJS](https://nextjs.org/) and [React Bootstrap](https://react-bootstrap.github.io/) with [INLINE_RUNTIME_CHUNK=false](https://create-react-app.dev/docs/advanced-configuration/), but I had no end of problems with that, including mysterious build errors and components inexplicably not loading (but also not producing errors). I was going to switch to [MUI](https://mui.com/), but it requires [server-side rendering to support CSP](https://mui.com/material-ui/guides/content-security-policy/), which was not the original objective. Chakra UI also [requires `unsafe-inline`](https://github.com/chakra-ui/chakra-ui/issues/3294).
 > 
-> Supporting nonces at all implies server-side rendering, since the nonce has to be unique for every request. That leaves hashes as the only possible solution for inline scripts, but that also requires the deployment process to update the HTTP response headers. While that's feasible, I haven't found anything that natively supports it. It's pretty frustrating how poorly supported CSP is in the React ecosystem. We have this fantastic security tool at our disposal and people are just ignoring it.
+> Supporting nonces at all implies server-side rendering, since the nonce has to be unique for every request. That leaves hashes as the only possible solution for inline scripts, but that also requires the deployment process to update the HTTP response headers (or `<meta>` tag). While that's feasible, I haven't found anything that natively supports it. It's pretty frustrating how poorly supported CSP is in the wider React ecosystem. We have this fantastic security tool at our disposal and people are just ignoring it or only supporting it as an afterthought.
 >
-> [Angular also requires nonces](https://angular.io/guide/security), meaning no static site generation. The [VueJS](https://vuejs.org/) runtime appears to be [CSP-compliant](https://v2.vuejs.org/v2/guide/installation.html#CSP-environments) and [Nuxt](https://nuxt.com/) can handle SSG. [SvelteKit](https://kit.svelte.dev/) also [supports CSP hashes](https://kit.svelte.dev/docs/configuration#csp). I've been wanting to use Svelte because it's so slick, but the lack of jobs for it has made me hesitant. I think this is one of those cases where doing the right thing in terms of security should outweigh other factors. Using a CSP without restoring to `unsafe-inline` should be assumed for apps on the modern Internet. Since I'm loathe to abandon SSG for cost and performance reasons, that means either VueJS or Svelte. I'll try them both out and then port over what little of the client I have to whatever I decide.
+> [Angular also requires nonces](https://angular.io/guide/security), meaning no static site generation. The [VueJS](https://vuejs.org/) runtime appears to be [CSP-compliant](https://v2.vuejs.org/v2/guide/installation.html#CSP-environments) and [Nuxt](https://nuxt.com/) can handle SSG and [CSP `<meta>` tag generation](https://nuxt-security.vercel.app/documentation/headers/csp#static-site-generation-ssg). [SvelteKit](https://kit.svelte.dev/) also [supports CSP hashes](https://kit.svelte.dev/docs/configuration#csp). I've been wanting to use Svelte because it's so slick, but the lack of jobs for it has made me hesitant. I think this is one of those cases where doing the right thing in terms of security should outweigh other factors. Using a CSP without restoring to `unsafe-inline` should be assumed for apps on the modern Internet. Since I'm loathe to abandon SSG for cost and performance reasons, that means either VueJS or Svelte. I'll try them both out and then port over what little of the client I have to whatever I decide. For now, I've removed the client entirely from the codebase until a decision about the frontend technology has been made.
 
 > **RabbitMQ will be used to implement eventual consistency among the microservices. Locally, it stands in for cloud-equivalent services like [SNS](https://aws.amazon.com/sns/), [Service Bus](https://azure.microsoft.com/en-us/products/service-bus/), and [Pub/Sub](https://cloud.google.com/pubsub/).
 
@@ -47,8 +47,8 @@ Deployments are planned to be handled by [Pulumi](https://www.pulumi.com/) and t
 
 To build and run Hirameku locally, you'll need:
 
-- .NET >=6 SDK
-- NodeJS >=18
+- .NET >=8 SDK
+- NodeJS >=20
 - Docker Desktop >= 4 (technically, you don't _have_ to use Docker for dev, but that's the supported environment)
 
 Visual Studio is the recommend IDE; however, it's not required. Everything can be built, configured, and run from the command line, and you're free to use whatever editor you prefer. The primary author typically uses Visual Studio Community Edition (its licensing terms permit its use for open source projects like Hirameku) for the .NET solution and Visual Studio Code for the web client.
@@ -56,7 +56,7 @@ Visual Studio is the recommend IDE; however, it's not required. Everything can b
 To set up your local dev environment, do the following:
 
 1. Clone the repo
-2. Install the [.NET 6 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+2. Install the [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 3. Install the latest [LTS release of NodeJS](https://nodejs.org/en/download)
 4. If using Windows, [install WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)
 5. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or if you're on Linux, Docker Engine, if you prefer)
@@ -193,6 +193,10 @@ To remove dangling images and volumes, use the following:
 - `docker rmi $(docker images -f dangling=true -q)`
 - `docker volume rm $(docker volume ls -f dangling=true -q)`
 
+To rebuild an individual container:
+
+- `docker compose up -d --no-deps --build <service_name>`
+
 # Build and Test
 
 Building and testing are as simple as `dotnet build` and `dotnet test`. Ensure you are in the root directory of the solution so MSBuild can find `Hirameku.sln`.
@@ -257,26 +261,27 @@ Access-Control-Allow-Origin: https://www.hirameku.app
 `www.hirameku.app`
 ---
 
-Security-related HTTP headers:
+> The following CSP uses origin whitelisting, which is discouraged due to the ability to bypass such restrictions (e.g. via JSONP interfaces). The Chrome Lighthouse docs have more [information about this vulnerability](https://developer.chrome.com/docs/lighthouse/best-practices/csp-xss/#csp_uses_nonces_or_hashes_to_avoid_allowlist_bypasses).
+>
+> Google recommends using CSP nonces for its services (Analytics, Recaptcha, etc.), but that's challenging to implement for a statically generated site. Using CSP hashes might be possible, but if Google ever updates the scripts, that'll break the hashes.
 
 ```txt
 Cross-Origin-Resource-Policy: same-origin
 Content Security Policy:
-    connect-src 'self' https://*.api.hirameku.app https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;
+    connect-src 'self' https://api.hirameku.app https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com;
     default-src 'none';
-    frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/ https://www.recaptcha.net/recaptcha/;
+    frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/;
     font-src 'self' https://fonts.gstatic.com;
-    img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com https://www.gravatar.com;
+    img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com https://www.gravatar.com https://www.gstatic.com/recaptcha/;
     manifest-src 'self';
-    script-src 'self' 'unsafe-inline' https://*.google.com https://*.googletagmanager.com https://www.gstatic.com/recaptcha/ https://www.recaptcha.net/recaptcha/;
-    style-src 'self' 'unsafe-inline';
+    script-src 'self' https://*.googletagmanager.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/;
+    style-src 'self';
 Referrer-Policy: strict-origin-when-cross-origin
 Strict-Transport-Security: max-age=31536000; preload
 X-Content-Type-Options: nosniff
-X-Frame-Options: sameorigin
+X-Frame-Options: deny
+X-XSS-Protection: 0
 ```
-
-Google recommends using CSP nonces for Recaptcha, but that's challenging to implement for a statically generated site. Using CSP hashes might be possible, but if Google ever updates the script, that'll break the hash. Recaptcha also works with `strict-dynamic`, which might be the best option.
 
 ## Authentication
 
@@ -297,7 +302,7 @@ Implement middleware to check UserStatus claim on authenticated requests
 
 - `UserStatus.Suspended` always returns 403
 - `UserStatus is not UserStatus.OK` returns 403 when not interacting with the IdentityService operations
-- the middleware should port to cloud FaaS platforms
+- the middleware must port to cloud FaaS platforms (i.e. it cannot not depend on ASP.NET Core Web API as the host)
 
 ## Databases
 
