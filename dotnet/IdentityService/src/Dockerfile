@@ -33,7 +33,6 @@ COPY ["User/src/User.csproj", "User/src/"]
 COPY ["Directory.Build.props", "/src/"]
 RUN dotnet restore "IdentityService/src/IdentityService.csproj"
 COPY . .
-COPY ["IdentityService/src/password-blacklist.txt", "/etc/hirameku/password-blacklist.txt"]
 WORKDIR "/src/IdentityService/src"
 RUN dotnet build "IdentityService.csproj" -c Release -o /app/build
 
@@ -43,4 +42,5 @@ RUN dotnet publish "IdentityService.csproj" -c Release -o /app/publish /p:UseApp
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY ["IdentityService/src/password-blacklist.txt", "/etc/hirameku/password-blacklist.txt"]
 ENTRYPOINT ["dotnet", "Hirameku.IdentityService.dll"]
