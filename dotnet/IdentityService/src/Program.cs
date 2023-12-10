@@ -56,15 +56,11 @@ internal sealed class Program
 
         if (app.Environment.IsDevelopment())
         {
-            _ = app.UseDeveloperExceptionPage();
             _ = app.UseSwagger();
             _ = app.UseSwaggerUI();
         }
-        else
-        {
-            _ = app.UseExceptionHandler("/error");
-        }
 
+        _ = app.UseExceptionHandler("/error");
         _ = app.UseForwardedHeaders();
         _ = app.UseAuthentication();
         _ = app.UseAuthorization();

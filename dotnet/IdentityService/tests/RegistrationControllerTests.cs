@@ -19,6 +19,7 @@ namespace Hirameku.IdentityService.Tests;
 
 using FluentValidation;
 using Hirameku.Common.Service;
+using Hirameku.Recaptcha;
 using Hirameku.Registration;
 using Hirameku.TestTools;
 using Microsoft.AspNetCore.Http;
@@ -107,18 +108,18 @@ public class RegistrationControllerTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    public async Task RegistrationController_Register_BadRequest()
+    public async Task RegistrationController_Register_BadRequest_RecaptchaVerificationFailedException()
     {
-        var mockProvider = new Mock<IRegistrationProvider>();
-        var model = new RegisterModel();
-        using var cancellationTokenSource = new CancellationTokenSource();
-        var cancellationToken = cancellationTokenSource.Token;
-        _ = mockProvider.Setup(
-            m => m.Register(model, nameof(RegistrationController.Register), RemoteIP, cancellationToken))
-            .ThrowsAsync(new ValidationException("error"));
-        var target = GetTarget(mockProvider);
+        var result = await RunRegisterBadRequestTest(new RecaptchaVerificationFailedException()).ConfigureAwait(false);
 
-        var result = await target.Register(model, cancellationToken).ConfigureAwait(false);
+        Assert.IsInstanceOfType(result, typeof(BadRequestResult));
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public async Task RegistrationController_Register_BadRequest_ValidationException()
+    {
+        var result = await RunRegisterBadRequestTest(new ValidationException("error")).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
     }
@@ -268,5 +269,19 @@ public class RegistrationControllerTests
         return new RegistrationController(
             mockContextAccessor.Object,
             mockRegistrationProvider?.Object ?? Mock.Of<IRegistrationProvider>());
+    }
+
+    private static Task<IActionResult> RunRegisterBadRequestTest(Exception exception)
+    {
+        var mockProvider = new Mock<IRegistrationProvider>();
+        var model = new RegisterModel();
+        using var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = cancellationTokenSource.Token;
+        _ = mockProvider.Setup(
+            m => m.Register(model, nameof(RegistrationController.Register), RemoteIP, cancellationToken))
+            .ThrowsAsync(exception);
+        var target = GetTarget(mockProvider);
+
+        return target.Register(model, cancellationToken);
     }
 }

@@ -50,23 +50,6 @@ public class ExceptionsProfileTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    public void ExceptionsProfile_Map_ArgumentException_ProblemDetails()
-    {
-        const string Message = nameof(Message);
-        var exception = new ArgumentException(Message);
-        var target = GetTarget();
-
-        var problemDetails = target.Map<ProblemDetails>(exception);
-
-        Assert.AreEqual(Message, problemDetails.Detail);
-        Assert.IsTrue(problemDetails.Extensions.Count == 0);
-        Assert.AreEqual(ErrorCodes.RequestValidationFailed, problemDetails.Instance);
-        Assert.AreEqual((int)HttpStatusCode.BadRequest, problemDetails.Status);
-        Assert.AreEqual(Resources.RequestValidationFailed, problemDetails.Title);
-    }
-
-    [TestMethod]
-    [TestCategory(TestCategories.Unit)]
     public void ExceptionsProfile_Map_EmailAddressAlreadyVerifiedException_ProblemDetails()
     {
         var message = Resources.EmailAddressAlreadyVerified;
@@ -97,6 +80,21 @@ public class ExceptionsProfileTests
         Assert.AreEqual(ErrorCodes.EmailAddressNotVerified, problemDetails.Instance);
         Assert.AreEqual((int)HttpStatusCode.Forbidden, problemDetails.Status);
         Assert.AreEqual(Resources.EmailAddressNotVerified, problemDetails.Title);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void ExceptionsProfile_Map_Exception_ProblemDetails()
+    {
+        RunMapExceptionTest<Exception>();
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void ExceptionsProfile_Map_InvalidOperationException_ProblemDetails_ShouldMapAsUnexpectedError()
+    {
+        // there is no explicit map for InvalidOperationException, so the base Exception behavior is expected
+        RunMapExceptionTest<InvalidOperationException>();
     }
 
     [TestMethod]
@@ -239,5 +237,21 @@ public class ExceptionsProfileTests
     {
         var configuration = new MapperConfiguration(c => c.AddProfile<ExceptionsProfile>());
         return configuration.CreateMapper();
+    }
+
+    private static void RunMapExceptionTest<TException>()
+        where TException : Exception, new()
+    {
+        var message = Resources.UnexpectedError;
+        var exception = new TException();
+        var target = GetTarget();
+
+        var problemDetails = target.Map<ProblemDetails>(exception);
+
+        Assert.AreEqual(message, problemDetails.Detail);
+        Assert.IsTrue(problemDetails.Extensions.Count == 0);
+        Assert.AreEqual(ErrorCodes.UnexpectedError, problemDetails.Instance);
+        Assert.AreEqual((int)HttpStatusCode.InternalServerError, problemDetails.Status);
+        Assert.AreEqual(Resources.UnexpectedError, problemDetails.Title);
     }
 }

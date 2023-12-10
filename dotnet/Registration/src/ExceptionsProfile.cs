@@ -32,12 +32,12 @@ public class ExceptionsProfile : Profile
 {
     public ExceptionsProfile()
     {
-        _ = this.CreateMap<ArgumentException, ProblemDetails>()
-            .ForMember(d => d.Detail, o => o.MapFrom(s => s.Message))
+        _ = this.CreateMap<Exception, ProblemDetails>()
+            .ForMember(d => d.Detail, o => o.MapFrom(_ => Resources.UnexpectedError))
             .ForMember(d => d.Extensions, o => o.Ignore())
-            .ForMember(d => d.Instance, o => o.MapFrom(_ => ErrorCodes.RequestValidationFailed))
-            .ForMember(d => d.Status, o => o.MapFrom(_ => HttpStatusCode.BadRequest))
-            .ForMember(d => d.Title, o => o.MapFrom(_ => Resources.RequestValidationFailed));
+            .ForMember(d => d.Instance, o => o.MapFrom(_ => ErrorCodes.UnexpectedError))
+            .ForMember(d => d.Status, o => o.MapFrom(_ => HttpStatusCode.InternalServerError))
+            .ForMember(d => d.Title, o => o.MapFrom(_ => Resources.UnexpectedError));
         _ = this.CreateMap<EmailAddressAlreadyVerifiedException, ProblemDetails>()
             .ForMember(d => d.Detail, o => o.MapFrom(s => s.Message))
             .ForMember(d => d.Extensions, o => o.Ignore())

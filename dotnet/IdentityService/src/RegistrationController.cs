@@ -39,7 +39,7 @@ public class RegistrationController : HiramekuController
 
     [HttpGet("isUserNameAvailable")]
     public Task<IActionResult> IsUserNameAvailable(
-        [FromBody] string userName,
+        [FromQuery] string userName,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action()
