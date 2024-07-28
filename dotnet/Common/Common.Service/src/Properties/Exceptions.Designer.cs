@@ -70,15 +70,6 @@ namespace Hirameku.Common.Service.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The HttpContext is null..
-        /// </summary>
-        public static string HttpContextIsNull {
-            get {
-                return ResourceManager.GetString("HttpContextIsNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The password provided is not sufficiently complex..
         /// </summary>
         public static string InsufficientPasswordEntropy {

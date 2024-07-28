@@ -59,7 +59,7 @@ public class CommonServiceModuleTests
                 _ = mockOptions.Setup(m => m.Value)
                     .Returns(new PasswordValidatorOptions()
                     {
-                        PasswordBlacklistPath = "password-blacklist.txt"
+                        PasswordBlacklistPath = "password-blacklist.txt",
                     });
 
                 return mockOptions.Object;

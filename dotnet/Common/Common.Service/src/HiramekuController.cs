@@ -17,29 +17,28 @@
 
 namespace Hirameku.Common.Service;
 
+using AutoMapper;
 using FluentValidation;
 using Hirameku.Common.Properties;
 using Hirameku.Common.Service.Properties;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Diagnostics;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
-using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
 public abstract class HiramekuController : ControllerBase
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    protected HiramekuController(IHttpContextAccessor contextAccessor)
+    protected HiramekuController(IMapper mapper)
     {
-        this.ContextAccessor = contextAccessor;
+        this.Mapper = mapper;
     }
 
-    protected IHttpContextAccessor ContextAccessor { get; }
+    protected IMapper Mapper { get; }
 
     [ApiExplorerSettings(IgnoreApi = true)]
     [Route("/error")]
@@ -49,9 +48,7 @@ public abstract class HiramekuController : ControllerBase
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        var context = this.ContextAccessor.HttpContext
-            ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
-        var exceptionHandlerFeature = context.Features.Get<IExceptionHandlerFeature>();
+        var exceptionHandlerFeature = this.HttpContext.Features.Get<IExceptionHandlerFeature>();
         var exception = exceptionHandlerFeature?.Error;
 
         Log.ForErrorEvent()
@@ -74,22 +71,12 @@ public abstract class HiramekuController : ControllerBase
         TParameters parameters,
         Func<ClaimsPrincipal, Task<IActionResult>> action)
     {
-        async Task<IActionResult> Action()
-        {
-            var user = this.ContextAccessor.HttpContext?.User;
-            IActionResult result;
+        var user = this.HttpContext.User;
 
-            if (user?.Identity?.IsAuthenticated ?? false)
-            {
-                result = await action(user).ConfigureAwait(false);
-            }
-            else
-            {
-                result = this.Unauthorized();
-            }
-
-            return result;
-        }
+        async Task<IActionResult> Action() =>
+            user?.Identity?.IsAuthenticated ?? false
+                ? await action(user).ConfigureAwait(false)
+                : this.Unauthorized();
 
         return this.ExecuteAction(parameters, Action);
     }
@@ -126,10 +113,7 @@ public abstract class HiramekuController : ControllerBase
 
     protected async Task<JwtSecurityToken> GetSecurityToken()
     {
-        var context = this.ContextAccessor.HttpContext;
-        var token = context != null
-            ? await context.GetTokenAsync("access_token").ConfigureAwait(false)
-            : string.Empty;
+        var token = await this.HttpContext.GetTokenAsync("access_token").ConfigureAwait(false) ?? string.Empty;
 
         return new JwtSecurityToken(token);
     }
@@ -146,7 +130,30 @@ public abstract class HiramekuController : ControllerBase
             .Exception(exception)
             .Log();
 
-        var result = this.Problem(
+        var problemDetails = this.ProblemDetailsFactory.CreateProblemDetails(this.HttpContext);
+        var result = default(ObjectResult);
+
+        if (exception is not null)
+        {
+            try
+            {
+                _ = this.Mapper.Map(exception, problemDetails);
+
+                result = new ObjectResult(problemDetails)
+                {
+                    StatusCode = problemDetails.Status,
+                };
+            }
+            catch (AutoMapperMappingException ex)
+            {
+                Log.ForErrorEvent()
+                    .Exception(ex)
+                    .Log();
+            }
+        }
+
+        result ??= this.Problem(
+            detail: Resources.UnexpectedError,
             instance: ErrorCodes.UnexpectedError,
             statusCode: (int)HttpStatusCode.InternalServerError,
             title: Resources.UnexpectedError);

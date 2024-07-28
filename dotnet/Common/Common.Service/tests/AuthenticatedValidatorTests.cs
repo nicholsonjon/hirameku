@@ -66,11 +66,10 @@ public class AuthenticatedValidatorTests
     private static ClaimsPrincipal GetMockPrincipal(string userId = UserId)
     {
         var identity = userId != null
-            ? new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, userId) })
+            ? new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, userId) })
             : new ClaimsIdentity();
 
         return new ClaimsPrincipal(identity);
-
     }
 
     private static AuthenticatedValidator<TestModel> GetTarget()

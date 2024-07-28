@@ -190,7 +190,7 @@ Additionally, If you run into port conflicts, you can override them in `docker-c
 
 To remove dangling images and volumes, use the following:
 
-- `docker rmi $(docker images -f dangling=true -q)`
+- `docker rmi $(docker images -qf dangling=true)`
 - `docker volume rm $(docker volume ls -f dangling=true -q)`
 
 To rebuild an individual container:

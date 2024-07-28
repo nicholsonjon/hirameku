@@ -18,6 +18,7 @@
 namespace Hirameku.IdentityService;
 
 using Asp.Versioning;
+using AutoMapper;
 using Hirameku.Common;
 using Hirameku.Common.Service;
 using Hirameku.User;
@@ -29,8 +30,8 @@ using System.Security.Claims;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class UserController : HiramekuController
 {
-    public UserController(IHttpContextAccessor contextAccessor, IUserProvider userProvider)
-        : base(contextAccessor)
+    public UserController(IMapper mapper, IUserProvider userProvider)
+        : base(mapper)
     {
         this.UserProvider = userProvider;
     }

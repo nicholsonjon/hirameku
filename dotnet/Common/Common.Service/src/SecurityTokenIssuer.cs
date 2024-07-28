@@ -69,7 +69,7 @@ public class SecurityTokenIssuer : ISecurityTokenIssuer
         };
 
         var handler = new JwtSecurityTokenHandler();
-        var token = handler.CreateJwtSecurityToken(descriptor);
+        var token = handler.CreateToken(descriptor);
 
         Log.Info("JWT issued", data: new { token });
         Log.Trace("Exiting method", data: new { returnValue = token });

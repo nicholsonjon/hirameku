@@ -21,7 +21,10 @@ using Hirameku.Common.Service;
 using Hirameku.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MongoDB.Bson.Serialization;
@@ -169,6 +172,47 @@ public static class TestUtilities
             .ConfigureAwait(false);
     }
 
+    public static ControllerContext GetControllerContext(
+        JwtSecurityToken? securityToken = default,
+        ClaimsPrincipal? user = default,
+        Mock<IExceptionHandlerFeature>? mockExceptionHandlerFeature = default)
+    {
+        var authenticationTicket = new AuthenticationTicket(
+            new GenericPrincipal(Mock.Of<IIdentity>(), default),
+            new AuthenticationProperties(new Dictionary<string, string?>()
+            {
+                { AccessTokenName, securityToken?.RawData },
+            }),
+            JwtBearerDefaults.AuthenticationScheme);
+        var mockHttpContext = new Mock<HttpContext>();
+
+        if (mockExceptionHandlerFeature is not null)
+        {
+            var mockFeatures = new Mock<IFeatureCollection>();
+            _ = mockFeatures.Setup(m => m.Get<IExceptionHandlerFeature>())
+                .Returns(mockExceptionHandlerFeature.Object);
+            _ = mockHttpContext.Setup(m => m.Features)
+                .Returns(mockFeatures.Object);
+        }
+
+        var httpContext = mockHttpContext.Object;
+        var mockAuthenticationService = new Mock<IAuthenticationService>();
+        _ = mockAuthenticationService.Setup(m => m.AuthenticateAsync(httpContext, default))
+            .ReturnsAsync(AuthenticateResult.Success(authenticationTicket));
+        var mockRequestServices = new Mock<IServiceProvider>();
+        _ = mockRequestServices.Setup(m => m.GetService(typeof(IAuthenticationService)))
+            .Returns(mockAuthenticationService.Object);
+
+        httpContext.RequestServices = mockRequestServices.Object;
+
+        if (user != null)
+        {
+            httpContext.User = user;
+        }
+
+        return new ControllerContext() { HttpContext = httpContext };
+    }
+
     public static JwtSecurityToken GetJwtSecurityToken(
         string userName = UserName,
         string userId = UserId,
@@ -206,39 +250,6 @@ public static class TestUtilities
         (strings ?? Enumerable.Empty<string>()).ToList().ForEach(s => builder.Append(s));
 
         return Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(builder.ToString())));
-    }
-
-    public static Mock<IHttpContextAccessor> GetMockContextAccessor(
-        JwtSecurityToken? securityToken = default,
-        ClaimsPrincipal? user = default)
-    {
-        var authenticationTicket = new AuthenticationTicket(
-            new GenericPrincipal(Mock.Of<IIdentity>(), default),
-            new AuthenticationProperties(new Dictionary<string, string?>()
-            {
-                { AccessTokenName, securityToken?.RawData },
-            }),
-            JwtBearerDefaults.AuthenticationScheme);
-        var mockAuthenticationService = new Mock<IAuthenticationService>();
-        var context = new DefaultHttpContext();
-        _ = mockAuthenticationService.Setup(m => m.AuthenticateAsync(context, default))
-            .ReturnsAsync(AuthenticateResult.Success(authenticationTicket));
-        var mockRequestServices = new Mock<IServiceProvider>();
-        _ = mockRequestServices.Setup(m => m.GetService(typeof(IAuthenticationService)))
-            .Returns(mockAuthenticationService.Object);
-
-        context.RequestServices = mockRequestServices.Object;
-
-        if (user != null)
-        {
-            context.User = user;
-        }
-
-        var mockAccessor = new Mock<IHttpContextAccessor>();
-        _ = mockAccessor.Setup(m => m.HttpContext)
-            .Returns(context);
-
-        return mockAccessor;
     }
 
     public static ClaimsPrincipal GetUser(string userId = UserId)

@@ -18,19 +18,18 @@
 namespace Hirameku.ContactService;
 
 using Asp.Versioning;
+using AutoMapper;
 using Hirameku.Common.Service;
 using Hirameku.Contact;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
 public class ContactController : HiramekuController
 {
-    public ContactController(IHttpContextAccessor contextAccessor, IContactProvider provider)
-        : base(contextAccessor)
+    public ContactController(IMapper mapper, IContactProvider provider)
+        : base(mapper)
     {
         this.Provider = provider ?? throw new ArgumentNullException(nameof(provider));
     }
@@ -44,13 +43,10 @@ public class ContactController : HiramekuController
     {
         async Task<IActionResult> Action()
         {
-            var context = this.ContextAccessor.HttpContext
-                ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
-
             await this.Provider.SendFeedback(
                 model,
                 nameof(this.SendFeedback),
-                context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
+                this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 cancellationToken)
                 .ConfigureAwait(false);
 

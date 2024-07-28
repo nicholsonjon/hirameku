@@ -24,7 +24,6 @@ using Moq;
 [TestClass]
 public class SecurityTokenIssuerTests
 {
-
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     public void SecurityTokenIssuer_Constructor()

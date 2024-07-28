@@ -190,7 +190,7 @@ public class UserProviderTests
         var model = new Authenticated<Unit>(
             Unit.Value,
             new JwtSecurityToken(),
-            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, UserId) })));
+            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) })));
 
         await target.DeleteUser(model, cancellationToken).ConfigureAwait(false);
 
@@ -218,7 +218,7 @@ public class UserProviderTests
         var model = new Authenticated<Unit>(
             Unit.Value,
             new JwtSecurityToken(),
-            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, userId) })));
+            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, userId) })));
 
         await target.DeleteUser(model).ConfigureAwait(false);
     }
@@ -234,7 +234,7 @@ public class UserProviderTests
         var model = new Authenticated<Unit>(
             Unit.Value,
             new JwtSecurityToken(),
-            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, UserId) })));
+            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) })));
 
         var actual = await target.GetUser(model, cancellationToken).ConfigureAwait(false);
 
@@ -262,7 +262,7 @@ public class UserProviderTests
         var model = new Authenticated<Unit>(
             Unit.Value,
             new JwtSecurityToken(),
-            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, userId) })));
+            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, userId) })));
 
         _ = await target.GetUser(model).ConfigureAwait(false);
     }
@@ -335,7 +335,7 @@ public class UserProviderTests
         var model = new Authenticated<UpdateNameModel>(
             new UpdateNameModel() { Name = Name },
             new JwtSecurityToken(expires: validTo),
-            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, UserId) })));
+            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) })));
 
         var actual = await target.UpdateName(model, cancellationToken).ConfigureAwait(false);
 
@@ -372,7 +372,7 @@ public class UserProviderTests
             new Authenticated<UpdateNameModel>(
                 new UpdateNameModel() { Name = Name },
                 new JwtSecurityToken(),
-                new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, "foo") }))))
+                new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, "foo") }))))
             .ConfigureAwait(false);
 
         Assert.Fail(nameof(UserDoesNotExistException) + " expected");
@@ -393,7 +393,7 @@ public class UserProviderTests
         var model = new Authenticated<UpdateUserNameModel>(
             new UpdateUserNameModel() { UserName = UserName },
             new JwtSecurityToken(expires: validTo),
-            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, UserId) })));
+            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) })));
 
         var actual = await target.UpdateUserName(model, cancellationToken).ConfigureAwait(false);
 
@@ -430,7 +430,7 @@ public class UserProviderTests
             new Authenticated<UpdateUserNameModel>(
                 new UpdateUserNameModel() { UserName = UserName },
                 new JwtSecurityToken(),
-                new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, "foo") }))))
+                new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, "foo") }))))
             .ConfigureAwait(false);
 
         Assert.Fail(nameof(UserDoesNotExistException) + " expected");
@@ -446,12 +446,12 @@ public class UserProviderTests
                 RememberMe = rememberMe,
             },
             new JwtSecurityToken(),
-            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, UserId) })));
+            new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) })));
     }
 
     private static ClaimsPrincipal GetClaimsPrincipal()
     {
-        return new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new Claim(PrivateClaims.UserId, UserId) }));
+        return new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) }));
     }
 
     private static Mock<ICachedValueDao> GetMockCachedValueDao(UserStatus userStatus)

@@ -17,9 +17,9 @@
 
 namespace Hirameku.IdentityService.Tests;
 
+using AutoMapper;
 using FluentValidation;
 using Hirameku.Common.Service;
-using Hirameku.Recaptcha;
 using Hirameku.Registration;
 using Hirameku.TestTools;
 using Microsoft.AspNetCore.Http;
@@ -104,15 +104,6 @@ public class RegistrationControllerTests
         var result = await target.Register(model, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(AcceptedResult));
-    }
-
-    [TestMethod]
-    [TestCategory(TestCategories.Unit)]
-    public async Task RegistrationController_Register_BadRequest_RecaptchaVerificationFailedException()
-    {
-        var result = await RunRegisterBadRequestTest(new RecaptchaVerificationFailedException()).ConfigureAwait(false);
-
-        Assert.IsInstanceOfType(result, typeof(BadRequestResult));
     }
 
     [TestMethod]
@@ -257,18 +248,19 @@ public class RegistrationControllerTests
 
     private static RegistrationController GetTarget(Mock<IRegistrationProvider>? mockRegistrationProvider = default)
     {
-        var mockContextAccessor = new Mock<IHttpContextAccessor>();
         var context = new DefaultHttpContext();
         context.Connection.RemoteIpAddress = IPAddress.Parse(RemoteIP);
-        _ = mockContextAccessor.Setup(m => m.HttpContext)
-            .Returns(context);
+
         var mockPasswordValidator = new Mock<IPasswordValidator>();
         _ = mockPasswordValidator.Setup(m => m.Validate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(CommonPasswordValidationResult.Valid);
 
         return new RegistrationController(
-            mockContextAccessor.Object,
-            mockRegistrationProvider?.Object ?? Mock.Of<IRegistrationProvider>());
+            Mock.Of<IMapper>(),
+            mockRegistrationProvider?.Object ?? Mock.Of<IRegistrationProvider>())
+        {
+            ControllerContext = new ControllerContext() { HttpContext = context },
+        };
     }
 
     private static Task<IActionResult> RunRegisterBadRequestTest(Exception exception)

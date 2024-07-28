@@ -18,19 +18,18 @@
 namespace Hirameku.IdentityService;
 
 using Asp.Versioning;
+using AutoMapper;
 using Hirameku.Common.Service;
 using Hirameku.Registration;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
 public class RegistrationController : HiramekuController
 {
-    public RegistrationController(IHttpContextAccessor contextAccessor, IRegistrationProvider registrationProvider)
-        : base(contextAccessor)
+    public RegistrationController(IMapper mapper, IRegistrationProvider registrationProvider)
+        : base(mapper)
     {
         this.RegistrationProvider = registrationProvider;
     }
@@ -58,13 +57,10 @@ public class RegistrationController : HiramekuController
     {
         async Task<IActionResult> Action()
         {
-            var context = this.ContextAccessor.HttpContext
-                ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
-
             await this.RegistrationProvider.Register(
                 model,
                 nameof(this.Register),
-                context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
+                this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 cancellationToken)
                 .ConfigureAwait(false);
 
@@ -96,12 +92,10 @@ public class RegistrationController : HiramekuController
     {
         async Task<IActionResult> Action()
         {
-            var context = this.ContextAccessor.HttpContext
-                ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
             var result = await this.RegistrationProvider.ResendVerificationEmail(
                 model,
                 nameof(this.ResendVerificationEmail),
-                context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
+                this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 cancellationToken)
                 .ConfigureAwait(false);
 

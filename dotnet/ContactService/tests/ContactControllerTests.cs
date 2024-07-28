@@ -17,6 +17,7 @@
 
 namespace Hirameku.ContactService.Tests;
 
+using AutoMapper;
 using FluentValidation;
 using Hirameku.Contact;
 using Microsoft.AspNetCore.Http;
@@ -72,7 +73,7 @@ public class ContactControllerTests
         var mockProvider = new Mock<IContactProvider>();
         _ = mockProvider.Setup(
             m => m.SendFeedback(model, nameof(ContactController.SendFeedback), RemoteIP, cancellationToken))
-            .ThrowsAsync(new ValidationException(nameof(ContactController_SendFeedback_BadRequest)));
+            .ThrowsAsync(new ValidationException(nameof(this.ContactController_SendFeedback_BadRequest)));
         var target = GetTarget(mockProvider);
 
         var result = await target.SendFeedback(model, cancellationToken).ConfigureAwait(false);
@@ -84,12 +85,12 @@ public class ContactControllerTests
 
     private static ContactController GetTarget(Mock<IContactProvider>? mockProvider = default)
     {
-        var mockContextAccessor = new Mock<IHttpContextAccessor>();
         var context = new DefaultHttpContext();
         context.Connection.RemoteIpAddress = IPAddress.Parse(RemoteIP);
-        _ = mockContextAccessor.Setup(m => m.HttpContext)
-            .Returns(context);
 
-        return new ContactController(mockContextAccessor.Object, mockProvider?.Object ?? Mock.Of<IContactProvider>());
+        return new ContactController(Mock.Of<IMapper>(), mockProvider?.Object ?? Mock.Of<IContactProvider>())
+        {
+            ControllerContext = new ControllerContext() { HttpContext = context },
+        };
     }
 }

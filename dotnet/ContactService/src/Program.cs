@@ -90,7 +90,6 @@ internal sealed class Program
             options.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
             options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         });
-        _ = services.AddHttpContextAccessor();
         _ = services.AddEndpointsApiExplorer();
         _ = services.AddHttpContextAccessor();
         _ = services.AddApiVersioning();

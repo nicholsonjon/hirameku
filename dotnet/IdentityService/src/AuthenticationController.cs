@@ -23,26 +23,19 @@ using Hirameku.Authentication;
 using Hirameku.Common;
 using Hirameku.Common.Service;
 using Microsoft.AspNetCore.Mvc;
-using ServiceExceptions = Hirameku.Common.Service.Properties.Exceptions;
 
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/[controller]")]
 public class AuthenticationController : HiramekuController
 {
-    public AuthenticationController(
-        IHttpContextAccessor contextAccessor,
-        IAuthenticationProvider authenticationProvider,
-        IMapper mapper)
-        : base(contextAccessor)
+    public AuthenticationController(IMapper mapper, IAuthenticationProvider authenticationProvider)
+        : base(mapper)
     {
         this.AuthenticationProvider = authenticationProvider;
-        this.Mapper = mapper;
     }
 
     private IAuthenticationProvider AuthenticationProvider { get; }
-
-    private IMapper Mapper { get; }
 
     [HttpPost("renewToken")]
     public Task<IActionResult> RenewToken(
@@ -51,8 +44,7 @@ public class AuthenticationController : HiramekuController
     {
         async Task<IActionResult> Action()
         {
-            var context = this.ContextAccessor.HttpContext
-                ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
+            var context = this.HttpContext;
             var headers = context.Request.Headers;
             var data = new AuthenticationData<RenewTokenModel>(
                 headers.Accept.FirstOrDefault() ?? string.Empty,
@@ -80,12 +72,10 @@ public class AuthenticationController : HiramekuController
     {
         async Task<IActionResult> Action()
         {
-            var context = this.ContextAccessor.HttpContext
-                ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
             var result = await this.AuthenticationProvider.ResetPassword(
                 model,
                 nameof(this.ResetPassword),
-                context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
+                this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 cancellationToken)
                 .ConfigureAwait(false);
 
@@ -102,12 +92,10 @@ public class AuthenticationController : HiramekuController
     {
         async Task<IActionResult> Action()
         {
-            var context = this.ContextAccessor.HttpContext
-                ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
             await this.AuthenticationProvider.SendPasswordReset(
                 model,
                 nameof(this.SendPasswordReset),
-                context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
+                this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 cancellationToken)
                 .ConfigureAwait(false);
 
@@ -124,8 +112,7 @@ public class AuthenticationController : HiramekuController
     {
         async Task<IActionResult> Action()
         {
-            var context = this.ContextAccessor.HttpContext
-                ?? throw new InvalidOperationException(ServiceExceptions.HttpContextIsNull);
+            var context = this.HttpContext;
             var headers = context.Request.Headers;
             var data = new AuthenticationData<SignInModel>(
                 headers.Accept.FirstOrDefault() ?? string.Empty,

@@ -120,9 +120,6 @@
   <data name="EmailAddressNotVerified" xml:space="preserve">
     <value>The operation was refused because the email address of user id '{0}' is not verified.</value>
   </data>
-  <data name="HttpContextIsNull" xml:space="preserve">
-    <value>The HttpContext is null.</value>
-  </data>
   <data name="InsufficientPasswordEntropy" xml:space="preserve">
     <value>The password provided is not sufficiently complex.</value>
   </data>

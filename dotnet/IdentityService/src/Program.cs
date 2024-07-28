@@ -58,9 +58,13 @@ internal sealed class Program
         {
             _ = app.UseSwagger();
             _ = app.UseSwaggerUI();
+            _ = app.UseDeveloperExceptionPage();
+        }
+        else
+        {
+            _ = app.UseExceptionHandler("/error");
         }
 
-        _ = app.UseExceptionHandler("/error");
         _ = app.UseForwardedHeaders();
         _ = app.UseAuthentication();
         _ = app.UseAuthorization();
@@ -91,7 +95,6 @@ internal sealed class Program
             options.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
             options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         });
-        _ = services.AddHttpContextAccessor();
         _ = services.AddEndpointsApiExplorer();
         _ = services.AddHttpContextAccessor();
         _ = services.AddApiVersioning();

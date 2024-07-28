@@ -17,14 +17,16 @@
 
 namespace Hirameku.Common.Service.Tests;
 
+using AutoMapper;
+using FluentValidation;
 using Hirameku.Common.Service.Properties;
 using Hirameku.TestTools;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Moq;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Reflection;
 using System.Security.Claims;
@@ -45,48 +47,67 @@ public class HiramekuControllerTests
     [TestCategory(TestCategories.Unit)]
     public Task HiramekuController_AuthorizeAndExecuteAction()
     {
-        return RunAuthorizeAndExecuteActionTest<OkResult>(
-            TestUtilities.GetMockContextAccessor(TestUtilities.GetJwtSecurityToken(), TestUtilities.GetUser()));
+        var context = TestUtilities.GetControllerContext(TestUtilities.GetJwtSecurityToken(), TestUtilities.GetUser());
+
+        Assert.IsNotNull(context.HttpContext);
+
+        return RunAuthorizeAndExecuteActionTest<OkResult>(context);
     }
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     public Task HiramekuController_AuthorizeAndExecuteAction_Unauthorized()
     {
-        return RunAuthorizeAndExecuteActionTest<UnauthorizedResult>();
+        return RunAuthorizeAndExecuteActionTest<UnauthorizedResult>(
+            TestUtilities.GetControllerContext(user: new ClaimsPrincipal(new ClaimsIdentity())));
     }
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     public async Task HiramekuController_Error()
     {
-        var target = GetTarget(GetMockContextAccessor());
+        const string Detail = nameof(Detail);
+        const string Instance = nameof(Instance);
+        const int Status = 999;
+        const string Title = nameof(Title);
+        var mockMapper = new Mock<IMapper>();
+        var expectedException = new InvalidOperationException();
+        var expectedProblemDetails = new ProblemDetails();
+        mockMapper.Setup(m => m.Map<Exception, ProblemDetails>(expectedException, expectedProblemDetails))
+            .Callback<Exception, ProblemDetails>(
+                (_, d) =>
+                {
+                    d.Detail = Detail;
+                    d.Instance = Instance;
+                    d.Status = Status;
+                    d.Title = Title;
+                })
+            .Returns(expectedProblemDetails)
+            .Verifiable();
+        var mockExceptionHandlerFeature = new Mock<IExceptionHandlerFeature>();
+        _ = mockExceptionHandlerFeature.Setup(m => m.Error)
+            .Returns(expectedException);
+        var controllerContext = TestUtilities.GetControllerContext(
+            mockExceptionHandlerFeature: mockExceptionHandlerFeature);
+        var target = GetTarget(controllerContext, mockMapper);
+        var mockProblemDetailsFactory = GetMockProblemDetailsFactory(
+            controllerContext.HttpContext,
+            expectedProblemDetails);
+        target.ProblemDetailsFactory = mockProblemDetailsFactory.Object;
 
         var actionResult = await target.Error().ConfigureAwait(false);
 
         var result = actionResult as ObjectResult;
         var problemDetails = result?.Value as ProblemDetails;
+
+        mockProblemDetailsFactory.Verify();
+        mockMapper.Verify();
         Assert.IsTrue(result?.ContentTypes.Contains(MediaTypes.ProblemDetails) ?? false);
-        Assert.AreEqual(result!.StatusCode, (int)HttpStatusCode.InternalServerError);
+        Assert.AreEqual(Status, result?.StatusCode);
         Assert.IsNotNull(problemDetails);
-        Assert.IsNull(problemDetails!.Detail);
-        Assert.AreEqual(ErrorCodes.UnexpectedError, problemDetails.Instance);
-        Assert.AreEqual(Resources.UnexpectedError, problemDetails.Title);
-    }
-
-    [TestMethod]
-    [TestCategory(TestCategories.Unit)]
-    [ExpectedException(typeof(InvalidOperationException))]
-    public async Task HiramekuController_Error_ContextAccessorIsNull_Throws()
-    {
-        var mockAccessor = new Mock<IHttpContextAccessor>();
-        _ = mockAccessor.Setup(m => m.HttpContext)
-            .Returns(null as HttpContext);
-        var target = GetTarget(mockAccessor);
-
-        _ = await target.Error().ConfigureAwait(false);
-
-        Assert.Fail(typeof(InvalidOperationException) + " expected");
+        Assert.AreEqual(Detail, problemDetails!.Detail);
+        Assert.AreEqual(Instance, problemDetails.Instance);
+        Assert.AreEqual(Title, problemDetails.Title);
     }
 
     [TestMethod]
@@ -137,51 +158,199 @@ public class HiramekuControllerTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
+    public async Task HiramekuController_ExecuteAction_ValidationException()
+    {
+        var target = GetTarget();
+        var controllerType = typeof(TestHiramekuController);
+        var methodInfo = controllerType.GetMethod("ExecuteAction", BindingFlags.NonPublic | BindingFlags.Instance);
+        var genericMethod = methodInfo?.MakeGenericMethod(typeof(object));
+
+        Assert.IsNotNull(genericMethod);
+
+        Func<Task<IActionResult>> action = () => throw new ValidationException("error");
+
+        var task = genericMethod.Invoke(target, new object[] { new(), action }) as Task<IActionResult>;
+
+        Assert.IsNotNull(task);
+
+        var result = await task.ConfigureAwait(false);
+
+        Assert.IsNotNull(result);
+        Assert.IsInstanceOfType<BadRequestObjectResult>(result);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
     public async Task HiramekuController_GetSecurityToken()
     {
         const string UserName = nameof(UserName);
         const string UserId = nameof(UserId);
         const string Name = nameof(Name);
         var expected = TestUtilities.GetJwtSecurityToken(UserName, UserId, Name);
-        var target = GetTarget(TestUtilities.GetMockContextAccessor(expected));
-        var controllerType = typeof(TestHiramekuController);
-        var methodInfo = controllerType.GetMethod("GetSecurityToken", BindingFlags.NonPublic | BindingFlags.Instance);
+        var target = GetTarget(TestUtilities.GetControllerContext(expected));
 
-        Assert.IsNotNull(methodInfo);
-
-        var task = methodInfo.Invoke(target, Array.Empty<object>()) as Task<JwtSecurityToken>;
-
-        Assert.IsNotNull(task);
-
-        var actual = await task.ConfigureAwait(false);
+        var actual = await target.GetSecurityToken().ConfigureAwait(false);
 
         Assert.AreEqual(expected.RawData, actual.RawData);
     }
 
-    private static Mock<IHttpContextAccessor> GetMockContextAccessor(Exception? error = default)
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void HiramekuController_Problem()
+    {
+        const string Detail = nameof(Detail);
+        const string Instance = nameof(Instance);
+        const int Status = 999;
+        const string Title = nameof(Title);
+        var mockMapper = new Mock<IMapper>();
+        var expectedException = new InvalidOperationException();
+        var expectedProblemDetails = new ProblemDetails();
+        mockMapper.Setup(m => m.Map<Exception, ProblemDetails>(expectedException, expectedProblemDetails))
+            .Callback<Exception, ProblemDetails>(
+                (_, d) =>
+                {
+                    d.Detail = Detail;
+                    d.Instance = Instance;
+                    d.Status = Status;
+                    d.Title = Title;
+                })
+            .Returns(expectedProblemDetails)
+            .Verifiable();
+        var controllerContext = TestUtilities.GetControllerContext();
+        var target = GetTarget(controllerContext, mockMapper);
+        var mockProblemDetailsFactory = GetMockProblemDetailsFactory(
+            controllerContext.HttpContext,
+            expectedProblemDetails);
+        target.ProblemDetailsFactory = mockProblemDetailsFactory.Object;
+        var controllerType = typeof(TestHiramekuController);
+        var methodInfo = controllerType.GetMethod(
+            nameof(TestHiramekuController.Problem),
+            BindingFlags.NonPublic | BindingFlags.Instance,
+            [typeof(Exception)]);
+
+        Assert.IsNotNull(methodInfo);
+
+        var result = methodInfo.Invoke(target, new object[] { expectedException }) as ObjectResult;
+        var actualProblemDetails = result?.Value as ProblemDetails;
+
+        mockProblemDetailsFactory.Verify();
+        mockMapper.Verify();
+        Assert.IsNotNull(actualProblemDetails);
+        Assert.AreEqual(Detail, actualProblemDetails.Detail);
+        Assert.AreEqual(Instance, actualProblemDetails.Instance);
+        Assert.AreEqual(Status, actualProblemDetails.Status);
+        Assert.AreEqual(Title, actualProblemDetails.Title);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void HiramekuController_Problem_AutoMapperMappingException()
+    {
+        var detail = Resources.UnexpectedError;
+        var instance = ErrorCodes.UnexpectedError;
+        var status = (int)HttpStatusCode.InternalServerError;
+        var title = Resources.UnexpectedError;
+        var mockMapper = new Mock<IMapper>();
+        var expectedProblemDetails = new ProblemDetails();
+        var expectedException = new InvalidOperationException();
+        _ = mockMapper.Setup(m => m.Map<Exception, ProblemDetails>(expectedException, expectedProblemDetails))
+            .Throws(new AutoMapperMappingException());
+        var controllerContext = TestUtilities.GetControllerContext();
+        var target = GetTarget(controllerContext, mockMapper);
+        var mockProblemDetailsFactory = GetMockProblemDetailsFactory(
+            controllerContext.HttpContext,
+            expectedProblemDetails,
+            detail,
+            title,
+            status,
+            instance);
+        target.ProblemDetailsFactory = mockProblemDetailsFactory.Object;
+        var controllerType = typeof(TestHiramekuController);
+        var methodInfo = controllerType.GetMethod(
+            nameof(TestHiramekuController.Problem),
+            BindingFlags.NonPublic | BindingFlags.Instance,
+            [typeof(Exception)]);
+
+        Assert.IsNotNull(methodInfo);
+
+        var result = methodInfo.Invoke(target, new object[] { expectedException }) as ObjectResult;
+        var actualProblemDetails = result?.Value as ProblemDetails;
+
+        Assert.IsNotNull(actualProblemDetails);
+        Assert.AreEqual(detail, actualProblemDetails.Detail);
+        Assert.AreEqual(instance, actualProblemDetails.Instance);
+        Assert.AreEqual(status, actualProblemDetails.Status);
+        Assert.AreEqual(title, actualProblemDetails.Title);
+    }
+
+    private static ControllerContext GetControllerContext(Exception? error = default)
     {
         var exceptionHandlerFeature = new ExceptionHandlerFeature() { Error = error! };
         var mockFeatureCollection = new Mock<IFeatureCollection>();
         _ = mockFeatureCollection.Setup(m => m.Get<IExceptionHandlerFeature>())
             .Returns(exceptionHandlerFeature);
-        var context = new DefaultHttpContext(mockFeatureCollection.Object);
-        var mockAccessor = new Mock<IHttpContextAccessor>();
-        _ = mockAccessor.Setup(m => m.HttpContext)
-            .Returns(context);
 
-        return mockAccessor;
+        return new ControllerContext()
+        {
+            HttpContext = new DefaultHttpContext(mockFeatureCollection.Object),
+        };
     }
 
-    private static TestHiramekuController GetTarget(Mock<IHttpContextAccessor>? mockContextAccessor = default)
+    private static Mock<ProblemDetailsFactory> GetMockProblemDetailsFactory(
+        HttpContext expectedContext,
+        ProblemDetails problemDetails,
+        string? detail = default,
+        string? title = default,
+        int? status = 500,
+        string? instance = default)
     {
-        return new TestHiramekuController(mockContextAccessor?.Object ?? Mock.Of<IHttpContextAccessor>());
+        var mockProblemDetailsFactory = new Mock<ProblemDetailsFactory>();
+        mockProblemDetailsFactory
+            .Setup(m => m.CreateProblemDetails(
+                expectedContext,
+                It.IsAny<int?>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .Returns(problemDetails ?? new ProblemDetails())
+            .Verifiable();
+        _ = mockProblemDetailsFactory
+            .Setup(m => m.CreateProblemDetails(
+                expectedContext,
+                status,
+                title,
+                default,
+                detail,
+                instance))
+            .Returns(new ProblemDetails()
+            {
+                Detail = detail,
+                Instance = instance,
+                Status = status,
+                Title = title,
+            });
+
+        return mockProblemDetailsFactory;
     }
 
-    private static async Task RunAuthorizeAndExecuteActionTest<TResult>(
-        Mock<IHttpContextAccessor>? mockContextAccessor = default)
+    private static TestHiramekuController GetTarget(
+        ControllerContext? context = default,
+        Mock<IMapper>? mockMapper = default)
+    {
+        return new TestHiramekuController(mockMapper?.Object ?? Mock.Of<IMapper>())
+        {
+            ControllerContext = context ?? new ControllerContext(),
+        };
+    }
+
+    private static async Task RunAuthorizeAndExecuteActionTest<TResult>(ControllerContext context)
         where TResult : class, IActionResult
     {
-        var target = GetTarget(mockContextAccessor);
+        var target = GetTarget(context);
+
+        Assert.IsNotNull(target.ControllerContext.HttpContext);
+
         var controllerType = typeof(TestHiramekuController);
         var methodInfo = controllerType.GetMethod(
             "AuthorizeAndExecuteAction",
@@ -191,7 +360,7 @@ public class HiramekuControllerTests
         Assert.IsNotNull(genericMethod);
 
         Func<ClaimsPrincipal, Task<IActionResult>> action = _ => Task.FromResult(new OkResult() as IActionResult);
-        var task = genericMethod.Invoke(target, new object[] { new(), action }) as Task<IActionResult>;
+        var task = genericMethod.Invoke(target, [new(), action]) as Task<IActionResult>;
 
         Assert.IsNotNull(task);
 

@@ -17,6 +17,7 @@
 
 namespace Hirameku.IdentityService.Tests;
 
+using AutoMapper;
 using FluentValidation;
 using Hirameku.Common;
 using Hirameku.Common.Service;
@@ -397,8 +398,9 @@ public class UserControllerTests
         _ = mockPasswordValidator.Setup(m => m.Validate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(PasswordValidationResult.Valid);
 
-        return new UserController(
-            TestUtilities.GetMockContextAccessor(GetJwtSecurityToken(), user).Object,
-            mockUserProvider?.Object ?? Mock.Of<IUserProvider>());
+        return new UserController(Mock.Of<IMapper>(), mockUserProvider?.Object ?? Mock.Of<IUserProvider>())
+        {
+            ControllerContext = TestUtilities.GetControllerContext(GetJwtSecurityToken(), user),
+        };
     }
 }

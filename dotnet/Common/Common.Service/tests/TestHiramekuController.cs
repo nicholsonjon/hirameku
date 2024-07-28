@@ -17,12 +17,15 @@
 
 namespace Hirameku.Common.Service.Tests;
 
-using Microsoft.AspNetCore.Http;
+using AutoMapper;
+using System.IdentityModel.Tokens.Jwt;
 
 internal sealed class TestHiramekuController : HiramekuController
 {
-    public TestHiramekuController(IHttpContextAccessor contextAccessor)
-        : base(contextAccessor)
+    public TestHiramekuController(IMapper mapper)
+        : base(mapper)
     {
     }
+
+    public new Task<JwtSecurityToken> GetSecurityToken() => base.GetSecurityToken();
 }
