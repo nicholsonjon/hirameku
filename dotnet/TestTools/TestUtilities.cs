@@ -19,8 +19,6 @@ namespace Hirameku.TestTools;
 
 using Hirameku.Common.Service;
 using Hirameku.Data;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -36,7 +34,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Security.Principal;
 using System.Text;
 
 public static class TestUtilities
@@ -49,7 +46,6 @@ public static class TestUtilities
     public static readonly DateTime Now = DateTime.UtcNow;
     public static readonly TimeSpan TokenExpiry = TimeSpan.FromMinutes(30);
     public static readonly string SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-    private const string AccessTokenName = ".Token.access_token";
 
     public static void AssertExpressionFilter<TDocument>(FilterDefinition<TDocument> filter, TDocument document)
     {
@@ -165,45 +161,29 @@ public static class TestUtilities
             CreationDate = creationDate ?? now,
             EmailAddress = emailAddress ?? nameof(Verification.EmailAddress),
             ExpirationDate = expirationDate ?? now,
-            Salt = new byte[] { 0 },
+            Salt = [0],
         };
 
-        return await VerificationToken.Create(verification, new byte[] { 0 }, HashAlgorithmName.MD5)
+        return await VerificationToken.Create(verification, [0], HashAlgorithmName.MD5)
             .ConfigureAwait(false);
     }
 
     public static ControllerContext GetControllerContext(
-        JwtSecurityToken? securityToken = default,
         ClaimsPrincipal? user = default,
         Mock<IExceptionHandlerFeature>? mockExceptionHandlerFeature = default)
     {
-        var authenticationTicket = new AuthenticationTicket(
-            new GenericPrincipal(Mock.Of<IIdentity>(), default),
-            new AuthenticationProperties(new Dictionary<string, string?>()
-            {
-                { AccessTokenName, securityToken?.RawData },
-            }),
-            JwtBearerDefaults.AuthenticationScheme);
-        var mockHttpContext = new Mock<HttpContext>();
+        var httpContext = default(HttpContext);
 
         if (mockExceptionHandlerFeature is not null)
         {
             var mockFeatures = new Mock<IFeatureCollection>();
             _ = mockFeatures.Setup(m => m.Get<IExceptionHandlerFeature>())
                 .Returns(mockExceptionHandlerFeature.Object);
-            _ = mockHttpContext.Setup(m => m.Features)
-                .Returns(mockFeatures.Object);
+
+            httpContext = new DefaultHttpContext(mockFeatures.Object);
         }
 
-        var httpContext = mockHttpContext.Object;
-        var mockAuthenticationService = new Mock<IAuthenticationService>();
-        _ = mockAuthenticationService.Setup(m => m.AuthenticateAsync(httpContext, default))
-            .ReturnsAsync(AuthenticateResult.Success(authenticationTicket));
-        var mockRequestServices = new Mock<IServiceProvider>();
-        _ = mockRequestServices.Setup(m => m.GetService(typeof(IAuthenticationService)))
-            .Returns(mockAuthenticationService.Object);
-
-        httpContext.RequestServices = mockRequestServices.Object;
+        httpContext ??= new DefaultHttpContext();
 
         if (user != null)
         {

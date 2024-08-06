@@ -713,7 +713,7 @@ public class AuthenticationProviderTests
     private static Mock<ISecurityTokenIssuer> GetMockSecurityTokenIssuer(User user)
     {
         var mockIssuer = new Mock<ISecurityTokenIssuer>();
-        mockIssuer.Setup(m => m.Issue(UserId, user, default))
+        mockIssuer.Setup(m => m.Issue(UserId, user))
             .Returns(GetJwtSecurityToken())
             .Verifiable();
 

@@ -320,7 +320,7 @@ public class UserProvider : IUserProvider
             cancellationToken)
             .ConfigureAwait(false);
 
-        var sessionToken = this.SecurityTokenIssuer.Issue(userId, user, authenticatedModel.SecurityToken.ValidTo);
+        var sessionToken = this.SecurityTokenIssuer.Issue(userId, user);
 
         Log.ForTraceEvent()
             .Property(LogProperties.ReturnValue, sessionToken)
@@ -365,7 +365,7 @@ public class UserProvider : IUserProvider
             cancellationToken)
             .ConfigureAwait(false);
 
-        var sessionToken = this.SecurityTokenIssuer.Issue(userId, user, authenticatedModel.SecurityToken.ValidTo);
+        var sessionToken = this.SecurityTokenIssuer.Issue(userId, user);
 
         Log.ForTraceEvent()
             .Property(LogProperties.ReturnValue, sessionToken)

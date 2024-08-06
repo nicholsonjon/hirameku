@@ -80,7 +80,6 @@ public class UserControllerTests
                 (a, ct) =>
                 {
                     Assert.AreEqual(model, a.Model);
-                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .ReturnsAsync(expectedResult);
@@ -118,12 +117,7 @@ public class UserControllerTests
         var mockUserProvider = new Mock<IUserProvider>();
         var user = TestUtilities.GetUser();
         _ = mockUserProvider.Setup(m => m.DeleteUser(It.IsAny<Authenticated<Unit>>(), cancellationToken))
-            .Callback<Authenticated<Unit>, CancellationToken>(
-                (a, ct) =>
-                {
-                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
-                    Assert.AreEqual(user, a.User);
-                })
+            .Callback<Authenticated<Unit>, CancellationToken>((a, ct) => Assert.AreEqual(user, a.User))
             .Returns(Task.CompletedTask);
         var target = GetTarget(user, mockUserProvider: mockUserProvider);
 
@@ -154,12 +148,7 @@ public class UserControllerTests
         var mockUserProvider = new Mock<IUserProvider>();
         var user = TestUtilities.GetUser();
         _ = mockUserProvider.Setup(m => m.GetUser(It.IsAny<Authenticated<Unit>>(), cancellationToken))
-            .Callback<Authenticated<Unit>, CancellationToken>(
-                (a, ct) =>
-                {
-                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
-                    Assert.AreEqual(user, a.User);
-                })
+            .Callback<Authenticated<Unit>, CancellationToken>((a, ct) => Assert.AreEqual(user, a.User))
             .ReturnsAsync(null as User);
         var target = GetTarget(user, mockUserProvider: mockUserProvider);
 
@@ -178,12 +167,7 @@ public class UserControllerTests
         var user = TestUtilities.GetUser();
         var expectedResult = new User();
         _ = mockUserProvider.Setup(m => m.GetUser(It.IsAny<Authenticated<Unit>>(), cancellationToken))
-            .Callback<Authenticated<Unit>, CancellationToken>(
-                (a, ct) =>
-                {
-                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
-                    Assert.AreEqual(user, a.User);
-                })
+            .Callback<Authenticated<Unit>, CancellationToken>((a, ct) => Assert.AreEqual(user, a.User))
             .ReturnsAsync(expectedResult);
         var target = GetTarget(user, mockUserProvider: mockUserProvider);
 
@@ -237,7 +221,6 @@ public class UserControllerTests
                 (a, ct) =>
                 {
                     Assert.AreEqual(EmailAddress, a.Model.EmailAddress);
-                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .Returns(Task.CompletedTask);
@@ -296,7 +279,6 @@ public class UserControllerTests
                 (a, ct) =>
                 {
                     Assert.AreEqual(Name, a.Model.Name);
-                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .ReturnsAsync(expectedResult);
@@ -356,7 +338,6 @@ public class UserControllerTests
                 (a, ct) =>
                 {
                     Assert.AreEqual(UserName, a.Model.UserName);
-                    Assert.AreEqual(GetJwtSecurityToken().RawData, a.SecurityToken.RawData);
                     Assert.AreEqual(user, a.User);
                 })
             .ReturnsAsync(expectedResult);
@@ -400,7 +381,7 @@ public class UserControllerTests
 
         return new UserController(Mock.Of<IMapper>(), mockUserProvider?.Object ?? Mock.Of<IUserProvider>())
         {
-            ControllerContext = TestUtilities.GetControllerContext(GetJwtSecurityToken(), user),
+            ControllerContext = TestUtilities.GetControllerContext(user),
         };
     }
 }

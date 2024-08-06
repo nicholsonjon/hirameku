@@ -47,9 +47,7 @@ public class HiramekuControllerTests
     [TestCategory(TestCategories.Unit)]
     public Task HiramekuController_AuthorizeAndExecuteAction()
     {
-        var context = TestUtilities.GetControllerContext(TestUtilities.GetJwtSecurityToken(), TestUtilities.GetUser());
-
-        Assert.IsNotNull(context.HttpContext);
+        var context = TestUtilities.GetControllerContext(TestUtilities.GetUser());
 
         return RunAuthorizeAndExecuteActionTest<OkResult>(context);
     }
@@ -122,7 +120,7 @@ public class HiramekuControllerTests
         Assert.IsNotNull(genericMethod);
 
         Func<Task<IActionResult>> action = () => Task.FromResult(new OkResult() as IActionResult);
-        var task = genericMethod.Invoke(target, new object[] { new(), action }) as Task<IActionResult>;
+        var task = genericMethod.Invoke(target, [new(), action]) as Task<IActionResult>;
 
         Assert.IsNotNull(task);
 
@@ -146,7 +144,7 @@ public class HiramekuControllerTests
 
         try
         {
-            var task = genericMethod.Invoke(target, new object[] { new(), null! }) as Task;
+            var task = genericMethod.Invoke(target, [new(), null!]) as Task;
 
             await task!.ConfigureAwait(false);
         }
@@ -169,7 +167,7 @@ public class HiramekuControllerTests
 
         Func<Task<IActionResult>> action = () => throw new ValidationException("error");
 
-        var task = genericMethod.Invoke(target, new object[] { new(), action }) as Task<IActionResult>;
+        var task = genericMethod.Invoke(target, [new(), action]) as Task<IActionResult>;
 
         Assert.IsNotNull(task);
 
@@ -177,21 +175,6 @@ public class HiramekuControllerTests
 
         Assert.IsNotNull(result);
         Assert.IsInstanceOfType<BadRequestObjectResult>(result);
-    }
-
-    [TestMethod]
-    [TestCategory(TestCategories.Unit)]
-    public async Task HiramekuController_GetSecurityToken()
-    {
-        const string UserName = nameof(UserName);
-        const string UserId = nameof(UserId);
-        const string Name = nameof(Name);
-        var expected = TestUtilities.GetJwtSecurityToken(UserName, UserId, Name);
-        var target = GetTarget(TestUtilities.GetControllerContext(expected));
-
-        var actual = await target.GetSecurityToken().ConfigureAwait(false);
-
-        Assert.AreEqual(expected.RawData, actual.RawData);
     }
 
     [TestMethod]
@@ -230,7 +213,7 @@ public class HiramekuControllerTests
 
         Assert.IsNotNull(methodInfo);
 
-        var result = methodInfo.Invoke(target, new object[] { expectedException }) as ObjectResult;
+        var result = methodInfo.Invoke(target, [expectedException]) as ObjectResult;
         var actualProblemDetails = result?.Value as ProblemDetails;
 
         mockProblemDetailsFactory.Verify();
@@ -273,7 +256,7 @@ public class HiramekuControllerTests
 
         Assert.IsNotNull(methodInfo);
 
-        var result = methodInfo.Invoke(target, new object[] { expectedException }) as ObjectResult;
+        var result = methodInfo.Invoke(target, [expectedException]) as ObjectResult;
         var actualProblemDetails = result?.Value as ProblemDetails;
 
         Assert.IsNotNull(actualProblemDetails);

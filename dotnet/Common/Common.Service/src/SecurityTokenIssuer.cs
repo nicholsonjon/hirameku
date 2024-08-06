@@ -38,11 +38,11 @@ public class SecurityTokenIssuer : ISecurityTokenIssuer
 
     private IOptions<SecurityTokenOptions> Options { get; }
 
-    public SecurityToken Issue(string userId, User user, DateTime? validTo = default)
+    public SecurityToken Issue(string userId, User user)
     {
         Log.Trace(
             "Entering method",
-            data: new { parameters = new { userId, user, validTo } });
+            data: new { parameters = new { userId, user } });
 
         ArgumentNullException.ThrowIfNull(user);
 
@@ -61,7 +61,7 @@ public class SecurityTokenIssuer : ISecurityTokenIssuer
                 { JwtRegisteredClaimNames.Sub, user.UserName },
                 { PrivateClaims.UserId, userId },
             },
-            Expires = validTo ?? now + options.TokenExpiry,
+            Expires = now + options.TokenExpiry,
             IssuedAt = now,
             Issuer = options.Issuer?.ToString(),
             NotBefore = now,

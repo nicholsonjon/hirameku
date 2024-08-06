@@ -17,11 +17,9 @@
 
 namespace Hirameku.Common.Service;
 
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 public record Authenticated<T>(
     T Model,
-    JwtSecurityToken SecurityToken,
     ClaimsPrincipal User)
     where T : class;

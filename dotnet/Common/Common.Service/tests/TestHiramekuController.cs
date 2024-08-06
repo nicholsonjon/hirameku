@@ -18,7 +18,6 @@
 namespace Hirameku.Common.Service.Tests;
 
 using AutoMapper;
-using System.IdentityModel.Tokens.Jwt;
 
 internal sealed class TestHiramekuController : HiramekuController
 {
@@ -26,6 +25,4 @@ internal sealed class TestHiramekuController : HiramekuController
         : base(mapper)
     {
     }
-
-    public new Task<JwtSecurityToken> GetSecurityToken() => base.GetSecurityToken();
 }

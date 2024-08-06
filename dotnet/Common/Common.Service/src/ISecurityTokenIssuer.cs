@@ -22,5 +22,5 @@ using Microsoft.IdentityModel.Tokens;
 
 public interface ISecurityTokenIssuer
 {
-    public SecurityToken Issue(string userId, User user, DateTime? validTo = default);
+    public SecurityToken Issue(string userId, User user);
 }

@@ -26,8 +26,6 @@ public class AuthenticatedValidator<T> : AbstractValidator<Authenticated<T>>
     {
         _ = this.RuleFor(a => a.Model)
             .SetValidator(modelValidator);
-        _ = this.RuleFor(a => a.SecurityToken)
-            .NotEmpty();
         _ = this.RuleFor(a => a.User.Claims)
             .Must(c =>
             {

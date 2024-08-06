@@ -98,7 +98,6 @@ public class UserProviderTests
         _ = await target.ChangePassword(
             new Authenticated<ChangePasswordModel>(
                 new ChangePasswordModel(),
-                new JwtSecurityToken(),
                 new ClaimsPrincipal()))
             .ConfigureAwait(false);
 
@@ -189,7 +188,6 @@ public class UserProviderTests
         var target = GetTarget(mockUserDao: mockUserDao);
         var model = new Authenticated<Unit>(
             Unit.Value,
-            new JwtSecurityToken(),
             new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) })));
 
         await target.DeleteUser(model, cancellationToken).ConfigureAwait(false);
@@ -217,7 +215,6 @@ public class UserProviderTests
         var target = GetTarget();
         var model = new Authenticated<Unit>(
             Unit.Value,
-            new JwtSecurityToken(),
             new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, userId) })));
 
         await target.DeleteUser(model).ConfigureAwait(false);
@@ -233,7 +230,6 @@ public class UserProviderTests
         var target = GetTarget(mockUserDao: GetMockUserDao(expected, cancellationToken));
         var model = new Authenticated<Unit>(
             Unit.Value,
-            new JwtSecurityToken(),
             new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) })));
 
         var actual = await target.GetUser(model, cancellationToken).ConfigureAwait(false);
@@ -261,7 +257,6 @@ public class UserProviderTests
         var target = GetTarget();
         var model = new Authenticated<Unit>(
             Unit.Value,
-            new JwtSecurityToken(),
             new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, userId) })));
 
         _ = await target.GetUser(model).ConfigureAwait(false);
@@ -284,7 +279,6 @@ public class UserProviderTests
         await target.UpdateEmailAddress(
             new Authenticated<UpdateEmailAddressModel>(
                 new UpdateEmailAddressModel(),
-                new JwtSecurityToken(),
                 GetClaimsPrincipal()))
             .ConfigureAwait(false);
 
@@ -313,7 +307,6 @@ public class UserProviderTests
         await target.UpdateEmailAddress(
             new Authenticated<UpdateEmailAddressModel>(
                 new UpdateEmailAddressModel() { EmailAddress = EmailAddress },
-                new JwtSecurityToken(),
                 GetClaimsPrincipal()),
             cancellationToken).ConfigureAwait(false);
 
@@ -329,12 +322,10 @@ public class UserProviderTests
         var user = new UserDocument() { Id = UserId };
         var mockUserDao = GetMockUserDaoForUpdateName(user, cancellationToken: cancellationToken);
         var expected = new JwtSecurityToken();
-        var validTo = DateTime.MinValue + TimeSpan.FromMinutes(30);
-        var mockSecurityTokenIssuer = GetMockSecurityTokenIssuer(user, validTo, expected);
+        var mockSecurityTokenIssuer = GetMockSecurityTokenIssuer(user, expected);
         var target = GetTarget(mockSecurityTokenIssuer: mockSecurityTokenIssuer, mockUserDao: mockUserDao);
         var model = new Authenticated<UpdateNameModel>(
             new UpdateNameModel() { Name = Name },
-            new JwtSecurityToken(expires: validTo),
             new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) })));
 
         var actual = await target.UpdateName(model, cancellationToken).ConfigureAwait(false);
@@ -351,11 +342,7 @@ public class UserProviderTests
     {
         var target = GetTarget();
 
-        _ = await target.UpdateName(
-            new Authenticated<UpdateNameModel>(
-                new UpdateNameModel(),
-                new JwtSecurityToken(),
-                new ClaimsPrincipal()))
+        _ = await target.UpdateName(new Authenticated<UpdateNameModel>(new UpdateNameModel(), new ClaimsPrincipal()))
             .ConfigureAwait(false);
 
         Assert.Fail(nameof(ValidationException) + " expected");
@@ -371,7 +358,6 @@ public class UserProviderTests
         _ = await target.UpdateName(
             new Authenticated<UpdateNameModel>(
                 new UpdateNameModel() { Name = Name },
-                new JwtSecurityToken(),
                 new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, "foo") }))))
             .ConfigureAwait(false);
 
@@ -387,12 +373,10 @@ public class UserProviderTests
         var user = new UserDocument() { Id = UserId };
         var mockUserDao = GetMockUserDaoForUpdateUserName(user, cancellationToken);
         var expected = new JwtSecurityToken();
-        var validTo = DateTime.MinValue + TimeSpan.FromMinutes(30);
-        var mockSecurityTokenIssuer = GetMockSecurityTokenIssuer(user, validTo, expected);
+        var mockSecurityTokenIssuer = GetMockSecurityTokenIssuer(user, expected);
         var target = GetTarget(mockUserDao: mockUserDao, mockSecurityTokenIssuer: mockSecurityTokenIssuer);
         var model = new Authenticated<UpdateUserNameModel>(
             new UpdateUserNameModel() { UserName = UserName },
-            new JwtSecurityToken(expires: validTo),
             new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) })));
 
         var actual = await target.UpdateUserName(model, cancellationToken).ConfigureAwait(false);
@@ -410,10 +394,7 @@ public class UserProviderTests
         var target = GetTarget();
 
         _ = await target.UpdateUserName(
-            new Authenticated<UpdateUserNameModel>(
-                new UpdateUserNameModel(),
-                new JwtSecurityToken(),
-                new ClaimsPrincipal()))
+            new Authenticated<UpdateUserNameModel>(new UpdateUserNameModel(), new ClaimsPrincipal()))
             .ConfigureAwait(false);
 
         Assert.Fail(nameof(ValidationException) + " expected");
@@ -429,7 +410,6 @@ public class UserProviderTests
         _ = await target.UpdateUserName(
             new Authenticated<UpdateUserNameModel>(
                 new UpdateUserNameModel() { UserName = UserName },
-                new JwtSecurityToken(),
                 new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, "foo") }))))
             .ConfigureAwait(false);
 
@@ -445,7 +425,6 @@ public class UserProviderTests
                 NewPassword = NewPassword,
                 RememberMe = rememberMe,
             },
-            new JwtSecurityToken(),
             new ClaimsPrincipal(new ClaimsIdentity(new Claim[] { new(PrivateClaims.UserId, UserId) })));
     }
 
@@ -509,22 +488,17 @@ public class UserProviderTests
     private static Mock<ISecurityTokenIssuer> GetMockSecurityTokenIssuer(User user)
     {
         var mockIssuer = new Mock<ISecurityTokenIssuer>();
-        mockIssuer.Setup(m => m.Issue(UserId, user, default))
+        mockIssuer.Setup(m => m.Issue(UserId, user))
             .Returns(new JwtSecurityToken())
             .Verifiable();
 
         return mockIssuer;
     }
 
-    private static Mock<ISecurityTokenIssuer> GetMockSecurityTokenIssuer(
-        User user,
-        DateTime validTo,
-        SecurityToken sessionToken)
+    private static Mock<ISecurityTokenIssuer> GetMockSecurityTokenIssuer(User user, SecurityToken sessionToken)
     {
         var mockIssuer = new Mock<ISecurityTokenIssuer>();
-        mockIssuer.Setup(m => m.Issue(UserId, user, It.IsAny<DateTime>()))
-            .Callback<string, User, DateTime?>(
-                (id, u, vt) => Assert.AreEqual(validTo.Second, vt?.Second))
+        mockIssuer.Setup(m => m.Issue(UserId, user))
             .Returns(sessionToken ?? new JwtSecurityToken())
             .Verifiable();
 
@@ -694,7 +668,6 @@ public class UserProviderTests
         await target.UpdateEmailAddress(
             new Authenticated<UpdateEmailAddressModel>(
                 new UpdateEmailAddressModel() { EmailAddress = EmailAddress },
-                new JwtSecurityToken(),
                 GetClaimsPrincipal()),
             cancellationToken)
             .ConfigureAwait(false);

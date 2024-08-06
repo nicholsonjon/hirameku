@@ -46,10 +46,7 @@ public class UserController : HiramekuController
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
             var responseModel = await this.UserProvider.ChangePassword(
-                new Authenticated<ChangePasswordModel>(
-                    model,
-                    await this.GetSecurityToken().ConfigureAwait(false),
-                    user),
+                new Authenticated<ChangePasswordModel>(model, user),
                 cancellationToken)
                 .ConfigureAwait(false);
 
@@ -65,10 +62,7 @@ public class UserController : HiramekuController
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
             await this.UserProvider.DeleteUser(
-                new Authenticated<Unit>(
-                    Unit.Value,
-                    await this.GetSecurityToken().ConfigureAwait(false),
-                    user),
+                new Authenticated<Unit>(Unit.Value, user),
                 cancellationToken).ConfigureAwait(false);
 
             return this.NoContent();
@@ -83,10 +77,7 @@ public class UserController : HiramekuController
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
             var userModel = await this.UserProvider.GetUser(
-                new Authenticated<Unit>(
-                    Unit.Value,
-                    await this.GetSecurityToken().ConfigureAwait(false),
-                    user),
+                new Authenticated<Unit>(Unit.Value, user),
                 cancellationToken).ConfigureAwait(false);
 
             return userModel != null ? this.Ok(userModel) : this.NotFound();
@@ -105,7 +96,6 @@ public class UserController : HiramekuController
             await this.UserProvider.UpdateEmailAddress(
                 new Authenticated<UpdateEmailAddressModel>(
                     new UpdateEmailAddressModel() { EmailAddress = emailAddress },
-                    await this.GetSecurityToken().ConfigureAwait(false),
                     user),
                 cancellationToken)
                 .ConfigureAwait(false);
@@ -122,10 +112,7 @@ public class UserController : HiramekuController
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
             var sessionToken = await this.UserProvider.UpdateName(
-                new Authenticated<UpdateNameModel>(
-                    new UpdateNameModel() { Name = name },
-                    await this.GetSecurityToken().ConfigureAwait(false),
-                    user),
+                new Authenticated<UpdateNameModel>(new UpdateNameModel() { Name = name }, user),
                 cancellationToken)
                 .ConfigureAwait(false);
 
@@ -141,10 +128,7 @@ public class UserController : HiramekuController
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
             var sessionToken = await this.UserProvider.UpdateUserName(
-                new Authenticated<UpdateUserNameModel>(
-                    new UpdateUserNameModel() { UserName = userName },
-                    await this.GetSecurityToken().ConfigureAwait(false),
-                    user),
+                new Authenticated<UpdateUserNameModel>(new UpdateUserNameModel() { UserName = userName }, user),
                 cancellationToken)
                 .ConfigureAwait(false);
 

@@ -19,7 +19,6 @@ namespace Hirameku.Common.Service.Tests;
 
 using FluentValidation;
 using FluentValidation.TestHelper;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 [TestClass]
@@ -38,24 +37,12 @@ public class AuthenticatedValidatorTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    public async Task AuthenticatedValidator_SecurityToken_Null()
-    {
-        var model = new Authenticated<TestModel>(new TestModel(), null!, GetMockPrincipal());
-        var target = GetTarget();
-
-        var result = await target.TestValidateAsync(model).ConfigureAwait(false);
-
-        _ = result.ShouldHaveValidationErrorFor(m => m.SecurityToken).Only();
-    }
-
-    [TestMethod]
-    [TestCategory(TestCategories.Unit)]
     [DataRow(null, DisplayName = nameof(AuthenticatedValidator_User_Claims_UserId_NullEmptyOrWhiteSpace) + "(null)")]
     [DataRow("", DisplayName = nameof(AuthenticatedValidator_User_Claims_UserId_NullEmptyOrWhiteSpace) + "(string.Empty)")]
     [DataRow("\t\r\n ", DisplayName = nameof(AuthenticatedValidator_User_Claims_UserId_NullEmptyOrWhiteSpace) + "(WhiteSpace)")]
     public async Task AuthenticatedValidator_User_Claims_UserId_NullEmptyOrWhiteSpace(string userId)
     {
-        var model = new Authenticated<TestModel>(new TestModel(), new JwtSecurityToken(), GetMockPrincipal(userId));
+        var model = new Authenticated<TestModel>(new TestModel(), GetMockPrincipal(userId));
         var target = GetTarget();
 
         var result = await target.TestValidateAsync(model).ConfigureAwait(false);

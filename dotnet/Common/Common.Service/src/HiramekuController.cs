@@ -21,11 +21,9 @@ using AutoMapper;
 using FluentValidation;
 using Hirameku.Common.Properties;
 using Hirameku.Common.Service.Properties;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using NLog;
-using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 
@@ -109,13 +107,6 @@ public abstract class HiramekuController : ControllerBase
             .Log();
 
         return result;
-    }
-
-    protected async Task<JwtSecurityToken> GetSecurityToken()
-    {
-        var token = await this.HttpContext.GetTokenAsync("access_token").ConfigureAwait(false) ?? string.Empty;
-
-        return new JwtSecurityToken(token);
     }
 
     protected virtual ObjectResult Problem(Exception? exception)
