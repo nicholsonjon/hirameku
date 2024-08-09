@@ -48,7 +48,7 @@ public class RecaptchaResponseValidatorTests
             .ReturnsAsync(expected);
         var stubOptions = new Mock<IOptions<RecaptchaOptions>>();
         _ = stubOptions.Setup(m => m.Value)
-            .Returns(new RecaptchaOptions() { BypassVerification = false });
+            .Returns(new RecaptchaOptions() { BypassValidation = false });
         var target = new RecaptchaResponseValidator(mockClient.Object, stubOptions.Object);
 
         var actual = await target.Validate(RecaptchaResponse, Action, RemoteIP, cancellationToken)
@@ -64,7 +64,7 @@ public class RecaptchaResponseValidatorTests
         var expected = RecaptchaVerificationResult.Verified;
         var stubOptions = new Mock<IOptions<RecaptchaOptions>>();
         _ = stubOptions.Setup(m => m.Value)
-            .Returns(new RecaptchaOptions() { BypassVerification = true });
+            .Returns(new RecaptchaOptions() { BypassValidation = true });
         var target = new RecaptchaResponseValidator(Mock.Of<IRecaptchaClient>(), stubOptions.Object);
 
         var actual = await target.Validate(RecaptchaResponse, Action, RemoteIP).ConfigureAwait(false);

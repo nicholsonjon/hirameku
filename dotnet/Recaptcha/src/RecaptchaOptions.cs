@@ -26,7 +26,7 @@ public class RecaptchaOptions
     {
     }
 
-    public bool BypassVerification { get; set; }
+    public bool BypassValidation { get; set; }
 
     public string ExpectedHostname { get; set; } = string.Empty;
 

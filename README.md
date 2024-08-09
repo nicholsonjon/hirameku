@@ -143,6 +143,7 @@ For IdentityService, you can use the following:
     },
     "Recaptcha": {
       "RecaptchaOptions": {
+        "BypassValidation": true,
         "ExpectedHostname": "localhost",
         "SiteSecret": "Overridden by secrets.json"
       }
@@ -157,11 +158,13 @@ For IdentityService, you can use the following:
 }
 ```
 
+Note the `BypassValidation` property is exclusively intended for local API testing (i.e. without running the UI).
+
 ### Generate a reCAPTCHA site key
 
 - [Generate a reCAPTCHA site key and secret](https://www.google.com/recaptcha/admin/create)
 - Enter the site key into the `Hirameku:Recaptcha:RecaptchaOptions:SiteKey` property of `appsettings.Development.json` in both ContactService and IdentityService
-- Enter the secret key into your [Secrets.json file](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0) for both ContactService and IdentityService
+- Enter the secret key into your [Secrets.json file](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-8.0) for both ContactService and IdentityService
 
 ### Docker
 

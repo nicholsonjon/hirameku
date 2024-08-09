@@ -49,7 +49,7 @@ public class RecaptchaResponseValidator : IRecaptchaResponseValidator
 
         RecaptchaVerificationResult result;
 
-        if (!this.Options.Value.BypassVerification)
+        if (!this.Options.Value.BypassValidation)
         {
             result = await this.Client.VerifyResponse(
                 recaptchaResponse,
@@ -61,7 +61,7 @@ public class RecaptchaResponseValidator : IRecaptchaResponseValidator
         else
         {
             Log.ForDebugEvent()
-                .Message("reCAPTCHA verification is bypassed")
+                .Message("reCAPTCHA validation is bypassed")
                 .Log();
 
             result = RecaptchaVerificationResult.Verified;
