@@ -20,7 +20,7 @@ services:
 
   cache:
     container_name: cache
-    image: ${DOCKER_REGISTRY-}redis:6.0-alpine
+    image: ${DOCKER_REGISTRY-}redis:7.0-alpine
     networks:
       - backend
 
@@ -66,7 +66,7 @@ services:
     build:
       dockerfile: mongo.Dockerfile
     container_name: database
-    image: ${DOCKER_REGISTRY-}mongo:4.0
+    image: ${DOCKER_REGISTRY-}mongo:5.0
     networks:
       - backend
 
@@ -103,7 +103,7 @@ services:
 
   messagebroker:
     container_name: messagebroker
-    image: ${DOCKER_REGISTRY-}rabbitmq:3.12-management-alpine
+    image: ${DOCKER_REGISTRY-}rabbitmq:3.13-management-alpine
     networks:
       - backend
 

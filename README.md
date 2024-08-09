@@ -1,4 +1,4 @@
-# Introduction 
+# Introduction
 
 Hirameku is a cloud-native, vendor-agnostic, serverless application for studying flashcards with support for localization and accessibility. It is intended primarily as a technology demonstrator rather than a fully featured application.
 
@@ -8,40 +8,32 @@ Hirameku is a [Jamstack](https://jamstack.org/) application that supports any ca
 
 - [.NET ~8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
 - [NodeJS ~20](https://nodejs.org/en/download)
-- [Astro ~2.5](https://astro.build/)*
-- [React >=18](https://react.dev/)
-- [TypeScript >=5.0](https://www.typescriptlang.org/)
+- [Svelte ~4.2](https://svelte.dev/)
+- [SvelteKit ~2.5](https://kit.svelte.dev/)
+- [TypeScript >=5.5](https://www.typescriptlang.org/)
 - [Docker Desktop >=4](https://www.docker.com/products/docker-desktop/) (or Docker Engine)
-- [NGINX ~1.25](https://nginx.org/)
-- [RabbitMQ ~3.12**](https://www.rabbitmq.com/)
-- [Redis ~6.0](https://redis.io/)
-- [MongoDB ~4.0](https://www.mongodb.com/)
+- [NGINX ~1.27](https://nginx.org/)
+- [RabbitMQ ~3.13*](https://www.rabbitmq.com/)
+- [Redis ~7.0](https://redis.io/)
+- [MongoDB ~5.0](https://www.mongodb.com/)
 - [smtp4dev](https://github.com/rnwood/smtp4dev)
 - [Seq](https://datalust.co/seq)
 - [Visual Studio 2022](https://visualstudio.microsoft.com/vs/)
 - [Visual Studio Code](https://code.visualstudio.com/)
 
-> *Since [Astro requires `unsafe-inline`](https://docs.astro.build/en/guides/troubleshooting/#refused-to-execute-inline-script) (thus defeating much of the benefit of CSP), it will be replaced with an alternative. The intent was to use [NextJS](https://nextjs.org/) and [React Bootstrap](https://react-bootstrap.github.io/) with [INLINE_RUNTIME_CHUNK=false](https://create-react-app.dev/docs/advanced-configuration/), but I had no end of problems with that, including mysterious build errors and components inexplicably not loading (but also not producing errors). I was going to switch to [MUI](https://mui.com/), but it requires [server-side rendering to support CSP](https://mui.com/material-ui/guides/content-security-policy/), which was not the original objective. Chakra UI also [requires `unsafe-inline`](https://github.com/chakra-ui/chakra-ui/issues/3294).
-> 
-> Supporting nonces at all implies server-side rendering, since the nonce has to be unique for every request. That leaves hashes as the only possible solution for inline scripts, but that also requires the deployment process to update the HTTP response headers (or `<meta>` tag). While that's feasible, I haven't found anything that natively supports it. It's pretty frustrating how poorly supported CSP is in the wider React ecosystem. We have this fantastic security tool at our disposal and people are just ignoring it or only supporting it as an afterthought.
->
-> [Angular also requires nonces](https://angular.io/guide/security), meaning no static site generation. The [VueJS](https://vuejs.org/) runtime appears to be [CSP-compliant](https://v2.vuejs.org/v2/guide/installation.html#CSP-environments) and [Nuxt](https://nuxt.com/) can handle SSG and [CSP `<meta>` tag generation](https://nuxt-security.vercel.app/documentation/headers/csp#static-site-generation-ssg). [SvelteKit](https://kit.svelte.dev/) also [supports CSP hashes](https://kit.svelte.dev/docs/configuration#csp). I've been wanting to use Svelte because it's so slick, but the lack of jobs for it has made me hesitant. I think this is one of those cases where doing the right thing in terms of security should outweigh other factors. Using a CSP without restoring to `unsafe-inline` should be assumed for apps on the modern Internet. Since I'm loathe to abandon SSG for cost and performance reasons, that means either VueJS or Svelte. I'll try them both out and then port over what little of the client I have to whatever I decide. For now, I've removed the client entirely from the codebase until a decision about the frontend technology has been made.
+> *RabbitMQ will be used to implement eventual consistency among the microservices. Locally, it stands in for cloud-equivalent services like [SNS](https://aws.amazon.com/sns/), [Service Bus](https://azure.microsoft.com/en-us/products/service-bus/), and [Pub/Sub](https://cloud.google.com/pubsub/).
 
-> **RabbitMQ will be used to implement eventual consistency among the microservices. Locally, it stands in for cloud-equivalent services like [SNS](https://aws.amazon.com/sns/), [Service Bus](https://azure.microsoft.com/en-us/products/service-bus/), and [Pub/Sub](https://cloud.google.com/pubsub/).
+AWS and Azure are both planned to be supported as cloud hosts, using the following services:
 
-AWS, Azure, and Google Cloud are all planned to be supported as cloud hosts, using the following services:
+- AWS S3/Azure Storage
+- AWS CloudFront/Azure CDN
+- AWS API Gateway/Azure API Management
+- AWS Lambda/Azure Functions
+- AWS SNS/Azure Service Bus
+- AWS ElastiCache/Azure Cache
+- AWS DocumentDB/Azure Cosmos DB
 
-- AWS S3/Azure Storage/Google Cloud Storage
-- AWS CloudFront/Azure CDN/Google Cloud CDN
-- AWS API Gateway/Azure API Management/Google Cloud API Gateway
-- AWS Lambda/Azure Functions/Google Cloud Functions
-- AWS SNS/Azure Service Bus/Google Pub/Sub
-- AWS ElastiCache/Azure Cache/Memorystore for Redis
-- AWS DocumentDB/Azure Cosmos DB/MongoDB Atlas on Google Cloud
-
-AWS will be supported first, with Azure also being given priority. Google Cloud will be a best effort case.
-
-Deployments are planned to be handled by [Pulumi](https://www.pulumi.com/) and the cloud vendors' respective CLI tools.
+AWS will be supported first and then Azure. Deployments are planned to be handled by [Pulumi](https://www.pulumi.com/) and the cloud vendors' respective CLI tools.
 
 # Getting Started
 
