@@ -26,6 +26,8 @@ public class RecaptchaOptions
     {
     }
 
+    public bool BypassVerification { get; set; }
+
     public string ExpectedHostname { get; set; } = string.Empty;
 
     public int MaxRetries { get; set; }

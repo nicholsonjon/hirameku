@@ -20,6 +20,7 @@ namespace Hirameku.Recaptcha.Tests;
 [TestClass]
 public class RecaptchaOptionsTests
 {
+    private const bool BypassVerification = true;
     private const string ExpectedHostname = nameof(ExpectedHostname);
     private const int MaxRetries = 5;
     private const double MinimumScore = 1.0d;
@@ -34,6 +35,15 @@ public class RecaptchaOptionsTests
         var target = GetTarget();
 
         Assert.IsNotNull(target);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void RecaptchaOptions_BypassVerification()
+    {
+        var target = GetTarget();
+
+        Assert.AreEqual(BypassVerification, target.BypassVerification);
     }
 
     [TestMethod]
@@ -94,6 +104,7 @@ public class RecaptchaOptionsTests
     {
         return new RecaptchaOptions()
         {
+            BypassVerification = BypassVerification,
             ExpectedHostname = ExpectedHostname,
             MaxRetries = MaxRetries,
             MedianFirstRetryDelay = MedianFirstRetryDelay,

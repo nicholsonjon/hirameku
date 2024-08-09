@@ -96,7 +96,7 @@ public class RecaptchaClient : IRecaptchaClient
     private RecaptchaVerificationResult GetRecaptchaVerificationResult(string action, RecaptchaResponse response)
     {
         RecaptchaVerificationResult result;
-        var errorCodes = response.ErrorCodes ?? Enumerable.Empty<string>();
+        var errorCodes = response.ErrorCodes ?? [];
         var options = this.Options.Value;
 
         if (errorCodes.Any())

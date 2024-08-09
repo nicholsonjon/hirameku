@@ -19,18 +19,22 @@ namespace Hirameku.Recaptcha;
 
 using Hirameku.Common;
 using Hirameku.Common.Properties;
+using Microsoft.Extensions.Options;
 using NLog;
 
 public class RecaptchaResponseValidator : IRecaptchaResponseValidator
 {
     private static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public RecaptchaResponseValidator(IRecaptchaClient client)
+    public RecaptchaResponseValidator(IRecaptchaClient client, IOptions<RecaptchaOptions> options)
     {
         this.Client = client;
+        this.Options = options;
     }
 
     private IRecaptchaClient Client { get; }
+
+    private IOptions<RecaptchaOptions> Options { get; }
 
     public async Task<RecaptchaVerificationResult> Validate(
         string recaptchaResponse,
@@ -43,12 +47,25 @@ public class RecaptchaResponseValidator : IRecaptchaResponseValidator
             .Message(LogMessages.EnteringMethod)
             .Log();
 
-        var result = await this.Client.VerifyResponse(
-            recaptchaResponse,
-            action,
-            remoteIP,
-            cancellationToken)
-            .ConfigureAwait(false);
+        RecaptchaVerificationResult result;
+
+        if (!this.Options.Value.BypassVerification)
+        {
+            result = await this.Client.VerifyResponse(
+                recaptchaResponse,
+                action,
+                remoteIP,
+                cancellationToken)
+                .ConfigureAwait(false);
+        }
+        else
+        {
+            Log.ForDebugEvent()
+                .Message("reCAPTCHA verification is bypassed")
+                .Log();
+
+            result = RecaptchaVerificationResult.Verified;
+        }
 
         Log.ForDebugEvent()
             .Property(LogProperties.Data, result)

@@ -17,6 +17,7 @@
 
 namespace Hirameku.Recaptcha.Tests;
 
+using Microsoft.Extensions.Options;
 using Moq;
 
 [TestClass]
@@ -30,7 +31,7 @@ public class RecaptchaResponseValidatorTests
     [TestCategory(TestCategories.Unit)]
     public void RecaptchaResponseValidator_Constructor()
     {
-        var target = new RecaptchaResponseValidator(new Mock<IRecaptchaClient>().Object);
+        var target = new RecaptchaResponseValidator(Mock.Of<IRecaptchaClient>(), Mock.Of<IOptions<RecaptchaOptions>>());
 
         Assert.IsNotNull(target);
     }
@@ -45,10 +46,28 @@ public class RecaptchaResponseValidatorTests
         var expected = RecaptchaVerificationResult.Verified;
         _ = mockClient.Setup(m => m.VerifyResponse(RecaptchaResponse, Action, RemoteIP, cancellationToken))
             .ReturnsAsync(expected);
-        var target = new RecaptchaResponseValidator(mockClient.Object);
+        var stubOptions = new Mock<IOptions<RecaptchaOptions>>();
+        _ = stubOptions.Setup(m => m.Value)
+            .Returns(new RecaptchaOptions() { BypassVerification = false });
+        var target = new RecaptchaResponseValidator(mockClient.Object, stubOptions.Object);
 
         var actual = await target.Validate(RecaptchaResponse, Action, RemoteIP, cancellationToken)
             .ConfigureAwait(false);
+
+        Assert.AreEqual(expected, actual);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public async Task RecaptcaResponseValidator_Validate_ValidationIsBypassed()
+    {
+        var expected = RecaptchaVerificationResult.Verified;
+        var stubOptions = new Mock<IOptions<RecaptchaOptions>>();
+        _ = stubOptions.Setup(m => m.Value)
+            .Returns(new RecaptchaOptions() { BypassVerification = true });
+        var target = new RecaptchaResponseValidator(Mock.Of<IRecaptchaClient>(), stubOptions.Object);
+
+        var actual = await target.Validate(RecaptchaResponse, Action, RemoteIP).ConfigureAwait(false);
 
         Assert.AreEqual(expected, actual);
     }
