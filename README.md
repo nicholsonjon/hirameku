@@ -33,7 +33,7 @@ AWS and Azure are both planned to be supported as cloud hosts, using the followi
 - AWS ElastiCache/Azure Cache
 - AWS DocumentDB/Azure Cosmos DB
 
-AWS will be supported first and then Azure. Deployments are planned to be handled by [Pulumi](https://www.pulumi.com/) and the cloud vendors' respective CLI tools.
+AWS will be supported first and then Azure. Google Cloud might also be added in the future. Deployments are planned to be handled by [Pulumi](https://www.pulumi.com/) and the cloud vendors' respective CLI tools.
 
 # Getting Started
 
