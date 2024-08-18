@@ -101,11 +101,47 @@ public class RegistrationModuleTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    public void RegistrationModule_Load_IRegistrationProvider()
+    public void RegistrationModule_Load_IIsUserNameAvailableHandler()
     {
-        var provider = Target.Value.Resolve<IRegistrationProvider>();
+        var handler = Target.Value.Resolve<IIsUserNameAvailableHandler>();
 
-        Assert.IsNotNull(provider);
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void RegistrationModule_Load_IRegisterHandler()
+    {
+        var handler = Target.Value.Resolve<IRegisterHandler>();
+
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void RegistrationModule_Load_IRejectRegistrationHandler()
+    {
+        var handler = Target.Value.Resolve<IRejectRegistrationHandler>();
+
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void RegistrationModule_Load_IResendVerificationHandler()
+    {
+        var handler = Target.Value.Resolve<IResendVerificationHandler>();
+
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void RegistrationModule_Load_IValidatePasswordHandler()
+    {
+        var handler = Target.Value.Resolve<IValidatePasswordHandler>();
+
+        Assert.IsNotNull(handler);
     }
 
     [TestMethod]
@@ -124,6 +160,15 @@ public class RegistrationModuleTests
         var validator = Target.Value.Resolve<IValidator<ResendVerificationEmailModel>>();
 
         Assert.IsNotNull(validator);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void RegistrationModule_Load_IVerifyEmailAddressHandler()
+    {
+        var handler = Target.Value.Resolve<IVerifyEmailAddressHandler>();
+
+        Assert.IsNotNull(handler);
     }
 
     [TestMethod]

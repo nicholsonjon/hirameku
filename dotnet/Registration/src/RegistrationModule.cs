@@ -46,8 +46,13 @@ public class RegistrationModule : Module
         _ = builder.RegisterType<RegistrationProfile>().As<Profile>();
         _ = builder.RegisterMapper().SingleInstance();
 
+        _ = builder.RegisterType<IsUserNameAvailableHandler>().As<IIsUserNameAvailableHandler>();
+        _ = builder.RegisterType<RegisterHandler>().As<IRegisterHandler>();
         _ = builder.RegisterType<RegisterModelValidator>().As<IValidator<RegisterModel>>();
-        _ = builder.RegisterType<RegistrationProvider>().As<IRegistrationProvider>();
+        _ = builder.RegisterType<RejectRegistrationHandler>().As<IRejectRegistrationHandler>();
+        _ = builder.RegisterType<ResendVerificationEmailHandler>().As<IResendVerificationHandler>();
         _ = builder.RegisterType<ResendVerificationEmailModelValidator>().As<IValidator<ResendVerificationEmailModel>>();
+        _ = builder.RegisterType<ValidatePasswordHandler>().As<IValidatePasswordHandler>();
+        _ = builder.RegisterType<VerifyEmailAddressHandler>().As<IVerifyEmailAddressHandler>();
     }
 }

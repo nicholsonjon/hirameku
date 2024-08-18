@@ -28,22 +28,20 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class RegistrationController : HiramekuController
 {
-    public RegistrationController(IMapper mapper, IRegistrationProvider registrationProvider)
+    public RegistrationController(IMapper mapper)
         : base(mapper)
     {
-        this.RegistrationProvider = registrationProvider;
     }
-
-    private IRegistrationProvider RegistrationProvider { get; }
 
     [HttpGet("isUserNameAvailable")]
     public Task<IActionResult> IsUserNameAvailable(
+        [FromServices] IIsUserNameAvailableHandler handler,
         [FromQuery] string userName,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action()
         {
-            var isUserNameAvailable = await this.RegistrationProvider.IsUserNameAvailable(userName, cancellationToken)
+            var isUserNameAvailable = await handler.IsUserNameAvailable(userName, cancellationToken)
                 .ConfigureAwait(false);
 
             return this.Ok(isUserNameAvailable);
@@ -53,11 +51,14 @@ public class RegistrationController : HiramekuController
     }
 
     [HttpPost("register")]
-    public Task<IActionResult> Register([FromBody] RegisterModel model, CancellationToken cancellationToken = default)
+    public Task<IActionResult> Register(
+        [FromServices] IRegisterHandler handler,
+        [FromBody] RegisterModel model,
+        CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action()
         {
-            await this.RegistrationProvider.Register(
+            await handler.Register(
                 model,
                 nameof(this.Register),
                 this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
@@ -72,12 +73,13 @@ public class RegistrationController : HiramekuController
 
     [HttpPost("rejectRegistration")]
     public Task<IActionResult> RejectRegistration(
+        [FromServices] IRejectRegistrationHandler handler,
         [FromBody] string token,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action()
         {
-            await this.RegistrationProvider.RejectRegistration(token, cancellationToken).ConfigureAwait(false);
+            await handler.RejectRegistration(token, cancellationToken).ConfigureAwait(false);
 
             return this.NoContent();
         }
@@ -87,12 +89,13 @@ public class RegistrationController : HiramekuController
 
     [HttpPost("resendVerificationEmail")]
     public Task<IActionResult> ResendVerificationEmail(
+        [FromServices] IResendVerificationHandler handler,
         [FromBody] ResendVerificationEmailModel model,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action()
         {
-            var result = await this.RegistrationProvider.ResendVerificationEmail(
+            var result = await handler.ResendVerificationEmail(
                 model,
                 nameof(this.ResendVerificationEmail),
                 this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
@@ -107,12 +110,13 @@ public class RegistrationController : HiramekuController
 
     [HttpPost("validatePassword")]
     public Task<IActionResult> ValidatePassword(
+        [FromServices] IValidatePasswordHandler handler,
         [FromBody] string password,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action()
         {
-            var result = await this.RegistrationProvider.ValidatePassword(password, cancellationToken)
+            var result = await handler.ValidatePassword(password, cancellationToken)
                 .ConfigureAwait(false);
 
             return this.Ok(result);
@@ -123,12 +127,13 @@ public class RegistrationController : HiramekuController
 
     [HttpPost("verifyEmailAddress")]
     public Task<IActionResult> VerifyEmailAddress(
+        [FromServices] IVerifyEmailAddressHandler handler,
         [FromBody] string token,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action()
         {
-            var result = await this.RegistrationProvider.VerifyEmaiAddress(token, cancellationToken)
+            var result = await handler.VerifyEmaiAddress(token, cancellationToken)
                 .ConfigureAwait(false);
 
             return this.Ok(result);

@@ -17,29 +17,11 @@
 
 namespace Hirameku.Registration;
 
-public interface IRegistrationProvider
+public interface IResendVerificationHandler
 {
-    public Task<bool> IsUserNameAvailable(string userName, CancellationToken cancellationToken = default);
-
-    public Task Register(
-        RegisterModel model,
-        string action,
-        string remoteIP,
-        CancellationToken cancellationToken = default);
-
-    public Task RejectRegistration(string serializedToken, CancellationToken cancellationToken = default);
-
-    public Task<ResendVerificationEmailResult> ResendVerificationEmail(
+    Task<ResendVerificationEmailResult> ResendVerificationEmail(
         ResendVerificationEmailModel model,
         string action,
         string remoteIP,
-        CancellationToken cancellationToken = default);
-
-    public Task<PasswordValidationResult> ValidatePassword(
-        string password,
-        CancellationToken cancellationToken = default);
-
-    public Task<EmailVerificationResult> VerifyEmaiAddress(
-        string serializedToken,
         CancellationToken cancellationToken = default);
 }
