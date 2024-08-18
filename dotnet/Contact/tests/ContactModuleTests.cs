@@ -54,9 +54,9 @@ public class ContactModuleTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    public void ContactModule_Load_IContactProvider()
+    public void ContactModule_Load_ISendFeedbackHandler()
     {
-        var provider = Target.Value.Resolve<IContactProvider>();
+        var provider = Target.Value.Resolve<ISendFeedbackHandler>();
 
         Assert.IsNotNull(provider);
     }

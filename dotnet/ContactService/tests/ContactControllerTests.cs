@@ -52,13 +52,13 @@ public class ContactControllerTests
         };
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
-        var mockProvider = new Mock<IContactProvider>();
-        _ = mockProvider.Setup(
+        var mockHandler = new Mock<ISendFeedbackHandler>();
+        _ = mockHandler.Setup(
             m => m.SendFeedback(model, nameof(ContactController.SendFeedback), RemoteIP, cancellationToken))
             .Returns(Task.CompletedTask);
-        var target = GetTarget(mockProvider);
+        var target = GetTarget();
 
-        var result = await target.SendFeedback(model, cancellationToken).ConfigureAwait(false);
+        var result = await target.SendFeedback(mockHandler.Object, model, cancellationToken).ConfigureAwait(false);
 
         Assert.IsInstanceOfType(result, typeof(AcceptedResult));
     }
@@ -70,25 +70,25 @@ public class ContactControllerTests
         var model = new SendFeedbackModel();
         using var cancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = cancellationTokenSource.Token;
-        var mockProvider = new Mock<IContactProvider>();
-        _ = mockProvider.Setup(
+        var mockHandler = new Mock<ISendFeedbackHandler>();
+        _ = mockHandler.Setup(
             m => m.SendFeedback(model, nameof(ContactController.SendFeedback), RemoteIP, cancellationToken))
             .ThrowsAsync(new ValidationException(nameof(this.ContactController_SendFeedback_BadRequest)));
-        var target = GetTarget(mockProvider);
+        var target = GetTarget();
 
-        var result = await target.SendFeedback(model, cancellationToken).ConfigureAwait(false);
+        var result = await target.SendFeedback(mockHandler.Object, model, cancellationToken).ConfigureAwait(false);
 
         var badRequest = result as BadRequestObjectResult;
         Assert.IsNotNull(badRequest);
         Assert.IsInstanceOfType(badRequest.Value, typeof(ValidationProblemDetails));
     }
 
-    private static ContactController GetTarget(Mock<IContactProvider>? mockProvider = default)
+    private static ContactController GetTarget()
     {
         var context = new DefaultHttpContext();
         context.Connection.RemoteIpAddress = IPAddress.Parse(RemoteIP);
 
-        return new ContactController(Mock.Of<IMapper>(), mockProvider?.Object ?? Mock.Of<IContactProvider>())
+        return new ContactController(Mock.Of<IMapper>())
         {
             ControllerContext = new ControllerContext() { HttpContext = context },
         };

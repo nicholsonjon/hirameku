@@ -23,7 +23,7 @@ using Hirameku.Recaptcha;
 using Moq;
 
 [TestClass]
-public class ContactProviderTests
+public class SendFeedbackHandlerTests
 {
     private const string Action = nameof(Action);
     private const string EmailAddress = "test@test.local";
@@ -34,7 +34,7 @@ public class ContactProviderTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    public void ContactProvider_Constructor()
+    public void SendFeedbackHandler_Constructor()
     {
         var target = GetTarget();
 
@@ -43,7 +43,7 @@ public class ContactProviderTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    public async Task ContactProvider_SendFeedback()
+    public async Task SendFeedbackHandler_SendFeedback()
     {
         var mockRecaptchaResponseValidator = new Mock<IRecaptchaResponseValidator>();
         using var cancellationTokenSource = new CancellationTokenSource();
@@ -60,7 +60,7 @@ public class ContactProviderTests
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     [ExpectedException(typeof(ValidationException))]
-    public async Task ContactProvider_SendFeedback_ModelIsInvalid()
+    public async Task SendFeedbackHandler_SendFeedback_ModelIsInvalid()
     {
         var target = GetTarget();
 
@@ -70,7 +70,7 @@ public class ContactProviderTests
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     [ExpectedException(typeof(ArgumentNullException))]
-    public async Task ContactProvider_SendFeedback_ModelIsNull()
+    public async Task SendFeedbackHandler_SendFeedback_ModelIsNull()
     {
         var target = GetTarget();
 
@@ -80,7 +80,7 @@ public class ContactProviderTests
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     [ExpectedException(typeof(RecaptchaVerificationFailedException))]
-    public async Task ContactProvider_SendFeedback_RecaptchaVerificationFailed_Throws()
+    public async Task SendFeedbackHandler_SendFeedback_RecaptchaVerificationFailed_Throws()
     {
         var mockRecaptchaResponseValidator = new Mock<IRecaptchaResponseValidator>();
         using var cancellationTokenSource = new CancellationTokenSource();
@@ -107,12 +107,12 @@ public class ContactProviderTests
         };
     }
 
-    private static ContactProvider GetTarget(
+    private static SendFeedbackHandler GetTarget(
         Mock<IEmailer>? mockEmailer = default,
         Mock<IRecaptchaResponseValidator>? mockRecaptchaResponseValidator = default,
         Mock<IValidator<SendFeedbackModel>>? mockSendFeedbackModelValidator = default)
     {
-        return new ContactProvider(
+        return new SendFeedbackHandler(
             mockEmailer?.Object ?? Mock.Of<IEmailer>(),
             mockRecaptchaResponseValidator?.Object ?? Mock.Of<IRecaptchaResponseValidator>(),
             mockSendFeedbackModelValidator?.Object ?? new SendFeedbackModelValidator());

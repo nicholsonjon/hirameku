@@ -35,7 +35,7 @@ public class ContactModule : Module
         _ = builder.RegisterModule<RecaptchaModule>().IfNotRegistered(typeof(RecaptchaModule));
 
         _ = builder.RegisterType<SendFeedbackModelValidator>().As<IValidator<SendFeedbackModel>>();
-        _ = builder.RegisterType<ContactProvider>().As<IContactProvider>();
+        _ = builder.RegisterType<SendFeedbackHandler>().As<ISendFeedbackHandler>();
         _ = builder.RegisterMapper().SingleInstance();
     }
 }

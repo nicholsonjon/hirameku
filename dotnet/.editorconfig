@@ -127,6 +127,7 @@ csharp_style_inlined_variable_declaration = true:error
 csharp_style_prefer_index_operator = true:error
 csharp_style_prefer_local_over_anonymous_function = true
 csharp_style_prefer_null_check_over_type_check = true:error
+csharp_style_prefer_primary_constructors = false
 csharp_style_prefer_range_operator = true:error
 csharp_style_prefer_tuple_swap = true:error
 csharp_style_prefer_utf8_string_literals = true

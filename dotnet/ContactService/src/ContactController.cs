@@ -28,22 +28,20 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class ContactController : HiramekuController
 {
-    public ContactController(IMapper mapper, IContactProvider provider)
+    public ContactController(IMapper mapper)
         : base(mapper)
     {
-        this.Provider = provider ?? throw new ArgumentNullException(nameof(provider));
     }
-
-    private IContactProvider Provider { get; }
 
     [HttpPost("sendFeedback")]
     public Task<IActionResult> SendFeedback(
+        [FromServices] ISendFeedbackHandler handler,
         [FromBody] SendFeedbackModel model,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action()
         {
-            await this.Provider.SendFeedback(
+            await handler.SendFeedback(
                 model,
                 nameof(this.SendFeedback),
                 this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
