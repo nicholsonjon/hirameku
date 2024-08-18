@@ -40,7 +40,11 @@ public class RejectRegistrationHandlerTests
     [TestCategory(TestCategories.Unit)]
     public void RejectRegistrationHandler_Constructor()
     {
-        var target = GetTarget();
+        var target = new RejectRegistrationHandler(
+            Mock.Of<ICachedValueDao>(),
+            Mock.Of<IEmailTokenSerializer>(),
+            Mock.Of<IDocumentDao<UserDocument>>(),
+            Mock.Of<IVerificationDao>());
 
         Assert.IsNotNull(target);
     }

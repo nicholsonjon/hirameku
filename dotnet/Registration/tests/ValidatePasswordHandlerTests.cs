@@ -35,7 +35,7 @@ public class ValidatePasswordHandlerTests
     [TestCategory(TestCategories.Unit)]
     public void ValidatePasswordHandler_Constructor()
     {
-        var target = GetTarget();
+        var target = new ValidatePasswordHandler(Mock.Of<IMapper>(), Mock.Of<IPasswordValidator>());
 
         Assert.IsNotNull(target);
     }

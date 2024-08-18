@@ -42,7 +42,11 @@ public class VerifyEmailAddressHandlerTests
     [TestCategory(TestCategories.Unit)]
     public void VerifyEmailAddressHandler_Constructor()
     {
-        var target = GetTarget();
+        var target = new VerifyEmailAddressHandler(
+            Mock.Of<IEmailTokenSerializer>(),
+            Mock.Of<IMapper>(),
+            Mock.Of<IDocumentDao<UserDocument>>(),
+            Mock.Of<IVerificationDao>());
 
         Assert.IsNotNull(target);
     }

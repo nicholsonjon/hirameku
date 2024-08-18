@@ -52,7 +52,14 @@ public class ResendVerificationEmailHandlerTests
     [TestCategory(TestCategories.Unit)]
     public void ResendVerificationEmailHandler_Constructor()
     {
-        var target = GetTarget();
+        var target = new ResendVerificationEmailHandler(
+            Mock.Of<ICacheClient>(),
+            Mock.Of<IEmailer>(),
+            Mock.Of<IRecaptchaResponseValidator>(),
+            Mock.Of<IValidator<ResendVerificationEmailModel>>(),
+            Mock.Of<IDocumentDao<UserDocument>>(),
+            Mock.Of<IVerificationDao>(),
+            Mock.Of<IOptions<VerificationOptions>>());
 
         Assert.IsNotNull(target);
     }

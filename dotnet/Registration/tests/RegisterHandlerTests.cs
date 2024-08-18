@@ -52,7 +52,16 @@ public class RegisterHandlerTests
     [TestCategory(TestCategories.Unit)]
     public void RegisterHandler_Constructor()
     {
-        var target = GetTarget();
+        var target = new RegisterHandler(
+            Mock.Of<ICacheClient>(),
+            Mock.Of<IEmailer>(),
+            Mock.Of<IMapper>(),
+            Mock.Of<IPasswordDao>(),
+            Mock.Of<IRecaptchaResponseValidator>(),
+            Mock.Of<IValidator<RegisterModel>>(),
+            Mock.Of<IDocumentDao<UserDocument>>(),
+            Mock.Of<IVerificationDao>(),
+            Mock.Of<IOptions<VerificationOptions>>());
 
         Assert.IsNotNull(target);
     }
