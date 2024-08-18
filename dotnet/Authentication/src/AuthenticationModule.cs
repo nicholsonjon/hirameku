@@ -61,12 +61,15 @@ public class AuthenticationModule : Module
             })
             .SingleInstance();
 
-        _ = builder.RegisterType<AuthenticationProvider>().As<IAuthenticationProvider>();
+        _ = builder.RegisterType<RenewTokenHandler>().As<IRenewTokenHandler>();
+        _ = builder.RegisterType<ResetPasswordHandler>().As<IResetPasswordHandler>();
         _ = builder.RegisterType<PersistentTokenIssuer>().As<IPersistentTokenIssuer>();
         _ = builder.RegisterType<RenewTokenModelValidator>().As<IValidator<RenewTokenModel>>();
         _ = builder.RegisterType<ResetPasswordModelValidator>().As<IValidator<ResetPasswordModel>>();
         _ = builder.RegisterType<SecurityTokenIssuer>().As<ISecurityTokenIssuer>();
+        _ = builder.RegisterType<SendPasswordResetHandler>().As<ISendPasswordResetHandler>();
         _ = builder.RegisterType<SendPasswordResetModelValidator>().As<IValidator<SendPasswordResetModel>>();
+        _ = builder.RegisterType<SignInHandler>().As<ISignInHandler>();
         _ = builder.RegisterType<SignInModelValidator>().As<IValidator<SignInModel>>();
     }
 }

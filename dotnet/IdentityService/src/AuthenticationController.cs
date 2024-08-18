@@ -29,16 +29,14 @@ using Microsoft.AspNetCore.Mvc;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class AuthenticationController : HiramekuController
 {
-    public AuthenticationController(IMapper mapper, IAuthenticationProvider authenticationProvider)
+    public AuthenticationController(IMapper mapper)
         : base(mapper)
     {
-        this.AuthenticationProvider = authenticationProvider;
     }
-
-    private IAuthenticationProvider AuthenticationProvider { get; }
 
     [HttpPost("renewToken")]
     public Task<IActionResult> RenewToken(
+        [FromServices] IRenewTokenHandler handler,
         [FromBody] RenewTokenModel model,
         CancellationToken cancellationToken = default)
     {
@@ -53,7 +51,7 @@ public class AuthenticationController : HiramekuController
                 model,
                 context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 headers.UserAgent.FirstOrDefault() ?? string.Empty);
-            var renewTokenResult = await this.AuthenticationProvider.RenewToken(data, cancellationToken)
+            var renewTokenResult = await handler.RenewToken(data, cancellationToken)
                 .ConfigureAwait(false);
             var authenticationResult = renewTokenResult.AuthenticationResult;
 
@@ -67,12 +65,13 @@ public class AuthenticationController : HiramekuController
 
     [HttpPost("resetPassword")]
     public Task<IActionResult> ResetPassword(
+        [FromServices] IResetPasswordHandler handler,
         [FromBody] ResetPasswordModel model,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action()
         {
-            var result = await this.AuthenticationProvider.ResetPassword(
+            var result = await handler.ResetPassword(
                 model,
                 nameof(this.ResetPassword),
                 this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
@@ -87,12 +86,13 @@ public class AuthenticationController : HiramekuController
 
     [HttpPost("sendPasswordReset")]
     public Task<IActionResult> SendPasswordReset(
+        [FromServices] ISendPasswordResetHandler handler,
         [FromBody] SendPasswordResetModel model,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action()
         {
-            await this.AuthenticationProvider.SendPasswordReset(
+            await handler.SendPasswordReset(
                 model,
                 nameof(this.SendPasswordReset),
                 this.HttpContext.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
@@ -107,6 +107,7 @@ public class AuthenticationController : HiramekuController
 
     [HttpPost("signIn")]
     public Task<IActionResult> SignIn(
+        [FromServices] ISignInHandler handler,
         [FromBody] SignInModel model,
         CancellationToken cancellationToken = default)
     {
@@ -121,7 +122,7 @@ public class AuthenticationController : HiramekuController
                 model,
                 context.Connection.RemoteIpAddress?.ToString() ?? string.Empty,
                 headers.UserAgent.FirstOrDefault() ?? string.Empty);
-            var signInResult = await this.AuthenticationProvider.SignIn(data, cancellationToken).ConfigureAwait(false);
+            var signInResult = await handler.SignIn(data, cancellationToken).ConfigureAwait(false);
             var authenticationResult = signInResult.AuthenticationResult;
 
             return authenticationResult is AuthenticationResult.Authenticated or AuthenticationResult.PasswordExpired

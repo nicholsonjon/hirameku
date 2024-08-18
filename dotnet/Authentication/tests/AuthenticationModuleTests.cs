@@ -104,15 +104,6 @@ public class AuthenticationModuleTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    public void AuthenticationModule_Load_IAuthenticationProvider()
-    {
-        var mapper = Target.Value.Resolve<IAuthenticationProvider>();
-
-        Assert.IsNotNull(mapper);
-    }
-
-    [TestMethod]
-    [TestCategory(TestCategories.Unit)]
     public void AuthenticationModule_Load_IMapper()
     {
         var mapper = Target.Value.Resolve<IMapper>();
@@ -124,53 +115,89 @@ public class AuthenticationModuleTests
     [TestCategory(TestCategories.Unit)]
     public void AuthenticationModule_Load_IPersistentTokenIssuer()
     {
-        var mapper = Target.Value.Resolve<IPersistentTokenIssuer>();
+        var issuer = Target.Value.Resolve<IPersistentTokenIssuer>();
 
-        Assert.IsNotNull(mapper);
+        Assert.IsNotNull(issuer);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void AuthenticationModule_Load_IRenewTokenHandler()
+    {
+        var handler = Target.Value.Resolve<IRenewTokenHandler>();
+
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void AuthenticationModule_Load_IResetPasswordHandler()
+    {
+        var handler = Target.Value.Resolve<IResetPasswordHandler>();
+
+        Assert.IsNotNull(handler);
     }
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     public void AuthenticationModule_Load_ISecurityTokenIssuer()
     {
-        var mapper = Target.Value.Resolve<ISecurityTokenIssuer>();
+        var issuer = Target.Value.Resolve<ISecurityTokenIssuer>();
 
-        Assert.IsNotNull(mapper);
+        Assert.IsNotNull(issuer);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void AuthenticationModule_Load_ISendPasswordResetHandler()
+    {
+        var handler = Target.Value.Resolve<ISendPasswordResetHandler>();
+
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void AuthenticationModule_Load_ISignInHandler()
+    {
+        var handler = Target.Value.Resolve<ISignInHandler>();
+
+        Assert.IsNotNull(handler);
     }
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     public void AuthenticationModule_Load_IValidatorOfRenewTokenModel()
     {
-        var mapper = Target.Value.Resolve<IValidator<RenewTokenModel>>();
+        var validator = Target.Value.Resolve<IValidator<RenewTokenModel>>();
 
-        Assert.IsNotNull(mapper);
+        Assert.IsNotNull(validator);
     }
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     public void AuthenticationModule_Load_IValidatorOfResetPasswordModel()
     {
-        var mapper = Target.Value.Resolve<IValidator<ResetPasswordModel>>();
+        var validator = Target.Value.Resolve<IValidator<ResetPasswordModel>>();
 
-        Assert.IsNotNull(mapper);
+        Assert.IsNotNull(validator);
     }
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     public void AuthenticationModule_Load_IValidatorOfSendPasswordResetModel()
     {
-        var mapper = Target.Value.Resolve<IValidator<SendPasswordResetModel>>();
+        var validator = Target.Value.Resolve<IValidator<SendPasswordResetModel>>();
 
-        Assert.IsNotNull(mapper);
+        Assert.IsNotNull(validator);
     }
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
     public void AuthenticationModule_Load_IValidatorOfSignInModel()
     {
-        var mapper = Target.Value.Resolve<IValidator<SignInModel>>();
+        var validator = Target.Value.Resolve<IValidator<SignInModel>>();
 
-        Assert.IsNotNull(mapper);
+        Assert.IsNotNull(validator);
     }
 }
