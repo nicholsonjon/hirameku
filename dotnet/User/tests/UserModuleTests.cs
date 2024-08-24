@@ -80,11 +80,56 @@ public class UserModuleTests
 
     [TestMethod]
     [TestCategory(TestCategories.Unit)]
-    public void UserModule_Load_IUserProvider()
+    public void UserModule_Load_IChangePasswordHandler()
     {
-        var provider = Target.Value.Resolve<IUserProvider>();
+        var handler = Target.Value.Resolve<IChangePasswordHandler>();
 
-        Assert.IsNotNull(provider);
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void UserModule_Load_IDeleteUserHandler()
+    {
+        var handler = Target.Value.Resolve<IDeleteUserHandler>();
+
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void UserModule_Load_IGetUserHandler()
+    {
+        var handler = Target.Value.Resolve<IGetUserHandler>();
+
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void UserModule_Load_IUpdateEmailAddressHandler()
+    {
+        var handler = Target.Value.Resolve<IUpdateEmailAddressHandler>();
+
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void UserModule_Load_IUpdateNameHandler()
+    {
+        var handler = Target.Value.Resolve<IUpdateNameHandler>();
+
+        Assert.IsNotNull(handler);
+    }
+
+    [TestMethod]
+    [TestCategory(TestCategories.Unit)]
+    public void UserModule_Load_IUpdateUserNameHandler()
+    {
+        var handler = Target.Value.Resolve<IUpdateUserNameHandler>();
+
+        Assert.IsNotNull(handler);
     }
 
     [TestMethod]

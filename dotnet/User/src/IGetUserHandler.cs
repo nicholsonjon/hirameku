@@ -15,13 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace Hirameku.Authentication;
+namespace Hirameku.User;
 
-public interface ISendPasswordResetHandler
+using Hirameku.Common;
+using Hirameku.Common.Service;
+
+public interface IGetUserHandler
 {
-    Task SendPasswordReset(
-        SendPasswordResetModel model,
-        string action,
-        string remoteIP,
-        CancellationToken cancellationToken = default);
+    Task<User?> GetUser(Authenticated<Unit> authenticatedModel, CancellationToken cancellationToken = default);
 }

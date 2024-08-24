@@ -30,22 +30,20 @@ using System.Security.Claims;
 [Route("api/v{version:apiVersion}/[controller]")]
 public class UserController : HiramekuController
 {
-    public UserController(IMapper mapper, IUserProvider userProvider)
+    public UserController(IMapper mapper)
         : base(mapper)
     {
-        this.UserProvider = userProvider;
     }
-
-    private IUserProvider UserProvider { get; }
 
     [HttpPost("changePassword")]
     public Task<IActionResult> ChangePassword(
+        [FromServices] IChangePasswordHandler handler,
         [FromBody] ChangePasswordModel model,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
-            var responseModel = await this.UserProvider.ChangePassword(
+            var responseModel = await handler.ChangePassword(
                 new Authenticated<ChangePasswordModel>(model, user),
                 cancellationToken)
                 .ConfigureAwait(false);
@@ -57,11 +55,13 @@ public class UserController : HiramekuController
     }
 
     [HttpDelete]
-    public Task<IActionResult> Delete(CancellationToken cancellationToken = default)
+    public Task<IActionResult> Delete(
+        [FromServices] IDeleteUserHandler handler,
+        CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
-            await this.UserProvider.DeleteUser(
+            await handler.DeleteUser(
                 new Authenticated<Unit>(Unit.Value, user),
                 cancellationToken).ConfigureAwait(false);
 
@@ -72,11 +72,13 @@ public class UserController : HiramekuController
     }
 
     [HttpGet]
-    public Task<IActionResult> Get(CancellationToken cancellationToken = default)
+    public Task<IActionResult> Get(
+        [FromServices] IGetUserHandler handler,
+        CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
-            var userModel = await this.UserProvider.GetUser(
+            var userModel = await handler.GetUser(
                 new Authenticated<Unit>(Unit.Value, user),
                 cancellationToken).ConfigureAwait(false);
 
@@ -88,12 +90,13 @@ public class UserController : HiramekuController
 
     [HttpPatch("updateEmailAddress")]
     public Task<IActionResult> UpdateEmailAddress(
+        [FromServices] IUpdateEmailAddressHandler handler,
         [FromBody] string emailAddress,
         CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
-            await this.UserProvider.UpdateEmailAddress(
+            await handler.UpdateEmailAddress(
                 new Authenticated<UpdateEmailAddressModel>(
                     new UpdateEmailAddressModel() { EmailAddress = emailAddress },
                     user),
@@ -107,11 +110,14 @@ public class UserController : HiramekuController
     }
 
     [HttpPatch("updateName")]
-    public Task<IActionResult> UpdateName([FromBody] string name, CancellationToken cancellationToken = default)
+    public Task<IActionResult> UpdateName(
+        [FromServices] IUpdateNameHandler handler,
+        [FromBody] string name,
+        CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
-            var sessionToken = await this.UserProvider.UpdateName(
+            var sessionToken = await handler.UpdateName(
                 new Authenticated<UpdateNameModel>(new UpdateNameModel() { Name = name }, user),
                 cancellationToken)
                 .ConfigureAwait(false);
@@ -123,11 +129,14 @@ public class UserController : HiramekuController
     }
 
     [HttpPatch("updateUserName")]
-    public Task<IActionResult> UpdateUserName([FromBody] string userName, CancellationToken cancellationToken = default)
+    public Task<IActionResult> UpdateUserName(
+        [FromServices] IUpdateUserNameHandler handler,
+        [FromBody] string userName,
+        CancellationToken cancellationToken = default)
     {
         async Task<IActionResult> Action(ClaimsPrincipal user)
         {
-            var sessionToken = await this.UserProvider.UpdateUserName(
+            var sessionToken = await handler.UpdateUserName(
                 new Authenticated<UpdateUserNameModel>(new UpdateUserNameModel() { UserName = userName }, user),
                 cancellationToken)
                 .ConfigureAwait(false);

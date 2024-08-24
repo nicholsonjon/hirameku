@@ -317,10 +317,10 @@ public class EmailerTests
             : string.Empty;
         var htmlParameters = new KeyValuePair<string, object[]>(
             Resources.ForgotPasswordHtml.ReplaceLineEndings(),
-            new object[] { subject, ResetPasswordUrl, validityText });
+            [subject, ResetPasswordUrl, validityText]);
         var textParameters = new KeyValuePair<string, object[]>(
             Resources.ForgotPasswordText.ReplaceLineEndings(),
-            new object[] { ResetPasswordUrl, validityText });
+            [ResetPasswordUrl, validityText]);
         var tokenData = new EmailTokenData(Pepper, Token, SmtpUserName, doesLinkExpire ? TimeSpan.FromDays(1) : null);
 
         return RunAndAssertTest(
@@ -341,10 +341,10 @@ public class EmailerTests
             : string.Empty;
         var htmlParameters = new KeyValuePair<string, object[]>(
             Resources.VerifyEmailHtml.ReplaceLineEndings(),
-            new object[] { subject, VerifyEmailUrl, validityText, RejectRegistrationUrl });
+            [subject, VerifyEmailUrl, validityText, RejectRegistrationUrl]);
         var textParameters = new KeyValuePair<string, object[]>(
             Resources.VerifyEmailText.ReplaceLineEndings(),
-            new object[] { VerifyEmailUrl, validityText, RejectRegistrationUrl });
+            [VerifyEmailUrl, validityText, RejectRegistrationUrl]);
         var tokenData = new EmailTokenData(Pepper, Token, SmtpUserName, doesLinkExpire ? TimeSpan.FromDays(1) : null);
 
         return RunAndAssertTest(

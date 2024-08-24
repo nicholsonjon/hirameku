@@ -15,11 +15,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-namespace Hirameku
+namespace Hirameku;
+
+public static class TestCategories
 {
-    public static class TestCategories
-    {
-        public const string Integration = nameof(Integration);
-        public const string Unit = nameof(Unit);
-    }
+    public const string Integration = nameof(Integration);
+    public const string Unit = nameof(Unit);
 }

@@ -17,31 +17,12 @@
 
 namespace Hirameku.User;
 
-using Hirameku.Common;
 using Hirameku.Common.Service;
 using Microsoft.IdentityModel.Tokens;
 
-public interface IUserProvider
+public interface IUpdateNameHandler
 {
-    public Task<TokenResponseModel> ChangePassword(
-        Authenticated<ChangePasswordModel> authenticatedModel,
-        CancellationToken cancellationToken = default);
-
-    public Task DeleteUser(Authenticated<Unit> authenticatedModel, CancellationToken cancellationToken = default);
-
-    public Task<User?> GetUser(
-        Authenticated<Unit> authenticatedModel,
-        CancellationToken cancellationToken = default);
-
-    public Task UpdateEmailAddress(
-        Authenticated<UpdateEmailAddressModel> authenticatedModel,
-        CancellationToken cancellationToken = default);
-
-    public Task<SecurityToken> UpdateName(
+    Task<SecurityToken> UpdateName(
         Authenticated<UpdateNameModel> authenticatedModel,
-        CancellationToken cancellationToken = default);
-
-    public Task<SecurityToken> UpdateUserName(
-        Authenticated<UpdateUserNameModel> authenticatedModel,
         CancellationToken cancellationToken = default);
 }
